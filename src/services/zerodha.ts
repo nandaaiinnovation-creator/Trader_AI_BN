@@ -43,11 +43,11 @@ export class ZerodhaService extends EventEmitter {
   private async loadCredentials() {
     try {
       const settings = await Settings.findOne({ where: { id: 1 } });
-  if (!((settings?.encrypted_secrets as any)?.zerodha)) {
+      if (!settings || !((settings.encrypted_secrets as any)?.zerodha)) {
         logger.warn('No Zerodha credentials found in settings');
         return;
       }
-  const decrypted = decrypt((settings.encrypted_secrets as any).zerodha);
+      const decrypted = decrypt((settings.encrypted_secrets as any).zerodha);
       this.credentials = JSON.parse(decrypted);
     } catch (err) {
   logger.error({ message: 'Failed to load Zerodha credentials', err });
@@ -262,14 +262,11 @@ export class ZerodhaService extends EventEmitter {
 
   private async saveCredentials() {
     try {
-      await Settings.update(
-        { id: 1 },
-        { 
-          encrypted_secrets: { 
-            zerodha: encrypt(JSON.stringify(this.credentials)) 
-          }
+      await (Settings as any).update({ id: 1 }, ({
+        encrypted_secrets: {
+          zerodha: encrypt(JSON.stringify(this.credentials))
         }
-      );
+      } as any));
     } catch (err) {
     logger.error({ message: 'Failed to save Zerodha credentials', err });
     }

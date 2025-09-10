@@ -16,12 +16,17 @@ export default class TrendlineBreakRule extends BaseRule {
     // Find pivot points
     const { highs: highPivots, lows: lowPivots } = findPivots(context.candles.map(c => c.close), pivots_window);
 
-    // Calculate volume Z-score
+    // Calculate volume Z-score (guard against zero or non-finite std)
     const recentVolumes = volumes.slice(-20);
-    const volumeMean = recentVolumes.reduce((a, b) => a + b) / recentVolumes.length;
-    const volumeStd = Math.sqrt(
-      recentVolumes.reduce((a, b) => a + Math.pow(b - volumeMean, 2), 0) / recentVolumes.length
-    );
+    const volumeMean = recentVolumes.reduce((a, b) => a + b, 0) / recentVolumes.length;
+    const variance = recentVolumes.reduce((a, b) => a + Math.pow(b - volumeMean, 2), 0) / recentVolumes.length;
+    const volumeStd = Math.sqrt(variance);
+
+    // If std is zero or not finite, treat as insufficient volume
+    if (!isFinite(volumeStd) || volumeStd === 0) {
+      return this.createResult(false, 0, 'Insufficient volume for trendline break');
+    }
+
     const volumeZ = (currentVolume - volumeMean) / volumeStd;
 
     if (volumeZ < min_volume_z) {

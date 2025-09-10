@@ -96,8 +96,12 @@ export default class DynamicSRRule extends BaseRule {
     const lows = candles.map(c => c.low);
     const closes = candles.map(c => c.close);
 
-    // Find pivot points
-    const { highs: highPivots, lows: lowPivots } = findPivots(closes, 5);
+  // Find pivot points using highs and lows so flat highs/lows are captured as pivots
+  const { highs: highPivots, lows: lowPivots } = findPivots(highs, 5);
+  // For bottom pivots use lows array
+  const lowPivotResult = findPivots(lows, 5);
+  // merge low pivots into lowPivots if needed
+  const combinedLowPivots = lowPivotResult.lows;
 
     // Initialize potential levels
     const potentialLevels: Map<number, SRLevel> = new Map();
@@ -120,7 +124,7 @@ export default class DynamicSRRule extends BaseRule {
     });
 
     // Process lows for support
-    lowPivots.forEach(i => {
+    combinedLowPivots.forEach(i => {
       const price = Math.round(lows[i] / 10) * 10; // Round to nearest 10
       if (!potentialLevels.has(price)) {
         potentialLevels.set(price, {

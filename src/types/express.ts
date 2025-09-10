@@ -5,7 +5,7 @@ export interface TypedRequestQuery<T extends ParsedQs> extends Request {
   query: T;
 }
 
-export interface ZerodhaCallbackQuery {
+export interface ZerodhaCallbackQuery extends ParsedQs {
   request_token?: string;
   status?: string;
   action?: string;

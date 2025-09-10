@@ -1,0 +1,20 @@
+import { BaseRule } from './base';
+import { RuleContext, RuleResult } from '../../types/rules';
+
+export default class SpreadGuardRule extends BaseRule {
+  async evaluate(context: RuleContext): Promise<RuleResult> {
+    this.validateConfig(['max_spread_pct', 'min_liquidity']);
+    const { max_spread_pct, min_liquidity } = this.config.params;
+
+    const ms: any = context.marketState || {};
+    const spread = ms.spread_pct;
+    const liquidity = ms.liquidity;
+    if (spread === undefined) return this.createResult(false, 0, 'Spread data not available');
+
+    if (spread > max_spread_pct || (liquidity !== undefined && liquidity < min_liquidity)) {
+      return this.createResult(false, 0, 'Spread/slippage guard tripped');
+    }
+
+    return this.createResult(false, 0, 'Spread acceptable');
+  }
+}

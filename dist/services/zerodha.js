@@ -40,7 +40,7 @@ class ZerodhaService extends events_1.EventEmitter {
     async loadCredentials() {
         try {
             const settings = await entities_1.Settings.findOne({ where: { id: 1 } });
-            if (!(settings?.encrypted_secrets?.zerodha)) {
+            if (!settings || !(settings.encrypted_secrets?.zerodha)) {
                 logger_1.logger.warn('No Zerodha credentials found in settings');
                 return;
             }

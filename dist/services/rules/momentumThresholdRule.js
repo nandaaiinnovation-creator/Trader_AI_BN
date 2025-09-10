@@ -8,7 +8,8 @@ class MomentumThresholdRule extends base_1.BaseRule {
         const { momentum_period, threshold_mult, consec_bars } = this.config.params;
         const closes = context.candles.map(c => c.close);
         // Calculate momentum using MACD with custom settings
-        const { histogram } = (0, indicators_1.macd)(closes, momentum_period, momentum_period * 2, Math.floor(momentum_period / 2));
+        const macdRes = (0, indicators_1.macd)(closes, momentum_period, momentum_period * 2, Math.floor(momentum_period / 2)) || { histogram: [] };
+        const histogram = macdRes.histogram || [];
         if (histogram.length < consec_bars) {
             return this.createResult(false, 0, 'Insufficient data for momentum analysis');
         }

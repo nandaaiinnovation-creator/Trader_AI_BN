@@ -13,14 +13,22 @@ class MarketThrustRule extends base_1.BaseRule {
         // Calculate ATR for volatility context
         const atrValues = (0, indicators_1.atr)(candles.map(c => c.high), candles.map(c => c.low), candles.map(c => c.close));
         const currentAtr = atrValues[atrValues.length - 1];
+        if (!isFinite(currentAtr) || currentAtr <= 0) {
+            return this.createResult(false, 0, 'Insufficient ATR data for thrust analysis');
+        }
         // Calculate baseline volume
-        const baselineVolume = candles
-            .slice(-20)
-            .reduce((sum, candle) => sum + candle.volume, 0) / 20;
+        const recentForVolume = candles.slice(-20);
+        if (recentForVolume.length === 0) {
+            return this.createResult(false, 0, 'Insufficient volume history for thrust analysis');
+        }
+        const baselineVolume = recentForVolume.reduce((sum, candle) => sum + (candle.volume || 0), 0) / recentForVolume.length;
+        if (!isFinite(baselineVolume) || baselineVolume <= 0) {
+            return this.createResult(false, 0, 'Insufficient volume history for thrust analysis');
+        }
         // Find thrusts in the window
         const bullishThrusts = [];
         const bearishThrusts = [];
-        for (let i = candles.length - thrust_window; i < candles.length; i++) {
+        for (let i = Math.max(candles.length - thrust_window, 0); i < candles.length; i++) {
             const candle = candles[i];
             const bodySize = Math.abs(candle.close - candle.open);
             const isHighVolume = candle.volume > baselineVolume * volume_mult;

@@ -57,8 +57,12 @@ class DynamicSRRule extends base_1.BaseRule {
         const highs = candles.map(c => c.high);
         const lows = candles.map(c => c.low);
         const closes = candles.map(c => c.close);
-        // Find pivot points
-        const { highs: highPivots, lows: lowPivots } = (0, indicators_1.findPivots)(closes, 5);
+        // Find pivot points using highs and lows so flat highs/lows are captured as pivots
+        const { highs: highPivots, lows: lowPivots } = (0, indicators_1.findPivots)(highs, 5);
+        // For bottom pivots use lows array
+        const lowPivotResult = (0, indicators_1.findPivots)(lows, 5);
+        // merge low pivots into lowPivots if needed
+        const combinedLowPivots = lowPivotResult.lows;
         // Initialize potential levels
         const potentialLevels = new Map();
         // Process highs for resistance
@@ -79,7 +83,7 @@ class DynamicSRRule extends base_1.BaseRule {
             }
         });
         // Process lows for support
-        lowPivots.forEach(i => {
+        combinedLowPivots.forEach(i => {
             const price = Math.round(lows[i] / 10) * 10; // Round to nearest 10
             if (!potentialLevels.has(price)) {
                 potentialLevels.set(price, {

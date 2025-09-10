@@ -1,4 +1,5 @@
-import { SMA, EMA, RSI, ATR, VWAP, MACD, BollingerBands, StochasticRSI } from 'technicalindicators';
+import { SMA, EMA, RSI, ATR, VWAP, BollingerBands, StochasticRSI } from 'technicalindicators';
+import { macd as safeMacd } from './indicators/macd';
 
 // SMA with configurable period
 export function sma(data: number[], period: number): number[] {
@@ -27,14 +28,8 @@ export function vwap(high: number[], low: number[], close: number[], volume: num
 
 // MACD with configurable periods
 export function macd(data: number[], fastPeriod: number = 12, slowPeriod: number = 26, signalPeriod: number = 9) {
-  return MACD.calculate({
-    values: data,
-    fastPeriod,
-    slowPeriod,
-    signalPeriod,
-    SimpleMAOscillator: false,
-    SimpleMASignal: false
-  });
+  // Delegate to safer implementation which returns empty arrays when insufficient data
+  return safeMacd(data, fastPeriod, slowPeriod, signalPeriod);
 }
 
 // Bollinger Bands

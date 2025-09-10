@@ -32,6 +32,20 @@ const defaultConfig = {
         orderflowDeltaRule: { enabled: true, weight: 0.9, params: { delta_window: 10, min_flip_z: 2.0, vwap_proximity_ticks: 3 } },
         macdCrossRule: { enabled: true, weight: 0.9, params: { fast: 12, slow: 26, signal: 9, min_hist_slope: 0.001 } },
         bollingerSqueezeRule: { enabled: true, weight: 0.8, params: { bb_len: 20, bb_sigma: 2, min_bandwidth: 0.001, follow_through_bars: 2 } },
+        supertrendRule: { enabled: true, weight: 0.8, params: { atr_period: 14, multiplier: 3, fresh_flip_bars: 3 } },
+        stochasticRule: { enabled: true, weight: 0.6, params: { stoch_rsi_period: 14, k_period: 3, d_period: 3, oversold: 20, overbought: 80 } },
+        insideBarRule: { enabled: true, weight: 0.7, params: { lookback: 5, breakout_confirm_ticks: 2 } },
+        engulfingVolumeRule: { enabled: true, weight: 0.8, params: { min_volume_mult: 1.5, pivot_window: 10 } },
+        breakRetestRule: { enabled: true, weight: 0.7, params: { break_buffer_ticks: 2, retest_bars: 3 } },
+        wickRejectionRule: { enabled: true, weight: 0.7, params: { wick_threshold_pct: 1.5, use_vwap_or_bb: true } },
+        threeBarThrustRule: { enabled: true, weight: 0.8, params: { thrust_bars: 3, min_body_ratio: 0.6 } },
+        cvdImbalanceRule: { enabled: true, weight: 0.9, params: { cvd_window: 50, z_threshold: 1000 } },
+        breadthProxyRule: { enabled: true, weight: 0.6, params: { constituents_count: 30, adv_decl_threshold: 1.2 } },
+        ivCrushRule: { enabled: true, weight: 0.6, params: { iv_lookback: 20, z_threshold: 1.5 } },
+        spreadGuardRule: { enabled: true, weight: 0.1, params: { max_spread_pct: 0.002, min_liquidity: 100 } },
+        atrNormalizationRule: { enabled: true, weight: 0.5, params: { atr_period: 14, max_atr_mult: 0.05 } },
+        newsFilterRule: { enabled: true, weight: 0.1, params: { ignore_on_news: true, sentiment_threshold: -0.5 } },
+        // duplicate removed
         timePatternRule: { enabled: true, weight: 0.4, params: { windows: [{ start: '09:15', end: '09:30' }], volatility_threshold: 0.01, trend_threshold: 0.01, reversal_threshold: 0.02 } },
         // engine driver config
         compositeScore: { enabled: true, weight: 1.0, params: { signal_threshold: 0.6, cooldown_bars: 0 } }

@@ -8,7 +8,10 @@ export default class MACDCrossRule extends BaseRule {
     const { fast, slow, signal, min_hist_slope } = this.config.params;
 
     const closes = context.candles.map(c => c.close);
-    const { macd: macdLine, signal: signalLine, histogram } = macd(closes, fast, slow, signal);
+    const macdRes = macd(closes, fast, slow, signal) || { macd: [], signal: [], histogram: [] };
+    const macdLine = macdRes.macd || [];
+    const signalLine = macdRes.signal || [];
+    const histogram = macdRes.histogram || [];
 
     if (macdLine.length === 0 || signalLine.length === 0 || histogram.length === 0) {
       return this.createResult(false, 0, 'Insufficient data for MACD');

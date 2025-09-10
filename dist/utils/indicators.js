@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.linearRegression = exports.findPivots = exports.zScore = exports.adx = exports.cvd = exports.obv = exports.stochRsi = exports.bb = exports.macd = exports.vwap = exports.atr = exports.rsi = exports.ema = exports.sma = void 0;
 const technicalindicators_1 = require("technicalindicators");
+const macd_1 = require("./indicators/macd");
 // SMA with configurable period
 function sma(data, period) {
     return technicalindicators_1.SMA.calculate({ period, values: data });
@@ -29,14 +30,8 @@ function vwap(high, low, close, volume) {
 exports.vwap = vwap;
 // MACD with configurable periods
 function macd(data, fastPeriod = 12, slowPeriod = 26, signalPeriod = 9) {
-    return technicalindicators_1.MACD.calculate({
-        values: data,
-        fastPeriod,
-        slowPeriod,
-        signalPeriod,
-        SimpleMAOscillator: false,
-        SimpleMASignal: false
-    });
+    // Delegate to safer implementation which returns empty arrays when insufficient data
+    return (0, macd_1.macd)(data, fastPeriod, slowPeriod, signalPeriod);
 }
 exports.macd = macd;
 // Bollinger Bands
