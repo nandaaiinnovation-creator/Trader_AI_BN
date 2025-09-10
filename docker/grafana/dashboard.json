@@ -1,0 +1,14 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "BankNifty Signals",
+    "panels": [
+      {"type": "graph", "title": "Ticks/sec", "targets": [{"expr": "ticks_sec"}]},
+      {"type": "graph", "title": "Signals/min", "targets": [{"expr": "signals_min"}]},
+      {"type": "graph", "title": "WS Latency", "targets": [{"expr": "ws_latency"}]},
+      {"type": "graph", "title": "Error Rates", "targets": [{"expr": "error_rate"}]},
+      {"type": "graph", "title": "Backtest Durations", "targets": [{"expr": "backtest_duration"}]},
+      {"type": "graph", "title": "ML Job Durations", "targets": [{"expr": "ml_job_duration"}]}
+    ]
+  }
+}
