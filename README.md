@@ -1,3 +1,37 @@
+# Trader_AI_BN — BANKNIFTY signals backend
+
+This repository contains the BANKNIFTY trading rules engine and backend. The project uses TypeScript, Jest (ts-jest) for tests, and GitHub Actions for CI.
+
+Quick start (PowerShell)
+
+1. Install dependencies
+
+```powershell
+Set-Location D:\Nanda_AI\GIT_BN_Project\banknifty-signals\backend
+npm ci
+```
+
+2. Build
+
+```powershell
+npm run build
+```
+
+3. Run tests
+
+```powershell
+npm run test:ts -- --runInBand
+```
+
+CI
+- A GitHub Actions workflow (`.github/workflows/ci.yml`) runs on push/PR and daily to build and run tests. It also uploads `backend/dist` and `backend/coverage` as workflow artifacts.
+
+Releases
+- When you publish a GitHub Release (or create a tag and publish), the release workflow will build the project and attach a zipped `backend/dist` as a release asset.
+
+Notes
+- `dist/` and `coverage/` are intentionally not tracked in Git. If you need to preserve build artifacts, use the GitHub Actions release artifacts or add an explicit release.
+- If you have local generated `dist` or `coverage` directories, keep backups before switching branches as they may block checkout.
 # BankNifty Signals Workstation
 
 ## Overview
