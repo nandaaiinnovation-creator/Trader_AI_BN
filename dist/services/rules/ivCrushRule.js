@@ -11,11 +11,19 @@ class IVCrushRule extends base_1.BaseRule {
             return this.createResult(false, 0, 'Insufficient IV history');
         const zs = (0, indicators_1.zScore)(ivSeries, iv_lookback);
         const last = zs[zs.length - 1] || 0;
-        if (last <= -z_threshold)
-            return this.createResult(true, 1, 'IV crush detected');
-        if (last >= z_threshold)
-            return this.createResult(true, 1, 'IV expansion detected');
-        return this.createResult(false, 0, 'No IV gap');
+        const z = Math.abs(last);
+        // include the computed z (absolute z-score) in the returned result so tests
+        // and consumers can inspect the magnitude of the IV deviation.
+        if (last <= -z_threshold) {
+            const base = this.createResult(true, 1, 'IV crush detected');
+            return { ...base, z };
+        }
+        if (last >= z_threshold) {
+            const base = this.createResult(true, 1, 'IV expansion detected');
+            return { ...base, z };
+        }
+        const base = this.createResult(false, 0, 'No IV gap');
+        return { ...base, z };
     }
 }
 exports.default = IVCrushRule;

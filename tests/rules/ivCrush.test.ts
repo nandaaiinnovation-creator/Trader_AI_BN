@@ -12,7 +12,7 @@ describe('IV Crush rule (TS)', () => {
   expect(res).toBeDefined();
   expect(typeof res.pass).toBe('boolean');
   expect(typeof res.reason).toBe('string');
-  expect(typeof (res as any).z).toBe('number');
-  expect((res as any).z).toBeGreaterThanOrEqual(0);
+  expect(typeof res.z).toBe('number');
+  expect(res.z).toBeGreaterThanOrEqual(0);
   });
 });

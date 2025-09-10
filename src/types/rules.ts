@@ -3,6 +3,8 @@ export interface RuleResult {
   score: number;  // 0 to 1
   reason: string;
   errorType?: 'CONFIG_MISSING' | 'DATA_MISSING' | 'RULE_ERROR';
+  // optional numeric payloads for specific rules (e.g. ivCrush returns z)
+  z?: number;
 }
 
 import { MarketState } from './market';
