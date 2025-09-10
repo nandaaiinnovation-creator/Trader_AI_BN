@@ -35,9 +35,15 @@ export class ZerodhaService extends EventEmitter {
     'AUBANK': 2.76
   };
 
+  // Allow overriding the Kite WS URL via env for testing/mocks
+  private static readonly DEFAULT_WS_URL = process.env.ZERODHA_WS_URL || 'wss://ws.kite.trade/v3';
+
   constructor() {
     super();
-    this.loadCredentials();
+    // Don't auto-load credentials during Jest tests to avoid requiring DB/data source initialization
+    if (process.env.NODE_ENV !== 'test') {
+      this.loadCredentials();
+    }
   }
 
   private async loadCredentials() {
@@ -82,13 +88,14 @@ export class ZerodhaService extends EventEmitter {
     }
   }
 
-  private async connect() {
+  private async connect(url?: string) {
     if (!this.credentials?.accessToken) {
       throw new Error('No access token available');
     }
 
     try {
-      this.ws = new WebSocket('wss://ws.kite.trade/v3');
+      const wsUrl = url || process.env.ZERODHA_WS_URL || ZerodhaService.DEFAULT_WS_URL;
+      this.ws = new WebSocket(wsUrl);
       
       this.ws.on('open', () => {
         logger.info('Connected to Zerodha WebSocket');
@@ -115,6 +122,16 @@ export class ZerodhaService extends EventEmitter {
     logger.error({ message: 'Failed to connect to Zerodha WebSocket', err });
       this.scheduleReconnect();
     }
+  }
+
+  // Public helper used by tests or external flows to trigger a connection
+  public async connectTo(url?: string) {
+    return this.connect(url);
+  }
+
+  // Public setter to allow tests to inject credentials without DB access
+  public setCredentials(creds: KiteCredentials) {
+    this.credentials = creds;
   }
 
   private handleTick(data: Buffer) {
@@ -228,8 +245,22 @@ export class ZerodhaService extends EventEmitter {
 
   private async storeTick(tick: any) {
     const key = `ticks:${tick.symbol}`;
-    await redisClient.set(key, JSON.stringify(tick));
-    await redisClient.expire(key, 300); // 5 minute TTL
+    try {
+      // Guard Redis usage for tests or when client isn't connected
+      // @redis/client exposes `isOpen` to detect connection state
+      // If Redis is not available, skip caching silently
+      // (rules engine still receives ticks via event emit)
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      if (redisClient && (redisClient as any).isOpen) {
+        await redisClient.set(key, JSON.stringify(tick));
+        await redisClient.expire(key, 300); // 5 minute TTL
+      } else {
+        logger.debug('Redis client not open; skipping tick cache');
+      }
+    } catch (err) {
+      logger.warn({ message: 'Failed to store tick in Redis; skipping', err });
+    }
   }
 
   private startHeartbeat() {
