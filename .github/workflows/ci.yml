@@ -18,12 +18,16 @@ jobs:
         with:
           node-version: 18
       - name: Install dependencies
+        env:
+          ZERODHA_ENABLE_WS: 'false'
         run: npm ci
         working-directory: ./backend
       - name: Build (TypeScript)
         run: npm run build
         working-directory: ./backend
       - name: Run tests
+        env:
+          ZERODHA_ENABLE_WS: 'false'
         run: npm run test:ts -- --runInBand
         working-directory: ./backend
       - name: Upload dist artifact
@@ -49,11 +53,14 @@ jobs:
         with:
           node-version: 18
       - name: Install dependencies
+        env:
+          ZERODHA_ENABLE_WS: 'false'
         run: npm ci
         working-directory: ./backend
       - name: Run integration tests (mock WS)
         env:
           NODE_ENV: test
+          ZERODHA_ENABLE_WS: 'false'
         run: npm run test:ts -- --runTestsByPath tests/integration --runInBand
         working-directory: ./backend
       - name: Upload integration coverage
