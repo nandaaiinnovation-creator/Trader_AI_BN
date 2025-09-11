@@ -41,7 +41,6 @@ export class ZerodhaService extends EventEmitter {
   // Control whether the service should open a real WebSocket connection.
   // Defaults to disabled in test/CI to avoid opening live connections.
   private static readonly ENABLE_WS = (process.env.ZERODHA_ENABLE_WS === 'true') || (process.env.NODE_ENV !== 'test');
-
   constructor() {
     super();
     // Don't auto-load credentials during Jest tests to avoid requiring DB/data source initialization
