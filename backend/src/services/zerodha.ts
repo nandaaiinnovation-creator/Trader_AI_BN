@@ -38,6 +38,9 @@ export class ZerodhaService extends EventEmitter {
   // Allow overriding the Kite WS URL via env for testing/mocks
   private static readonly DEFAULT_WS_URL = process.env.ZERODHA_WS_URL || 'wss://ws.kite.trade/v3';
 
+  // Control whether the service should open a real WebSocket connection.
+  // Defaults to disabled in test/CI to avoid opening live connections.
+  private static readonly ENABLE_WS = (process.env.ZERODHA_ENABLE_WS === 'true') || (process.env.NODE_ENV !== 'test');
   constructor() {
     super();
     // Don't auto-load credentials during Jest tests to avoid requiring DB/data source initialization
@@ -81,7 +84,12 @@ export class ZerodhaService extends EventEmitter {
 
       this.credentials.accessToken = response.data.data.access_token;
       await this.saveCredentials();
-      await this.connect();
+      // Only connect automatically if WS is enabled
+      if (ZerodhaService.ENABLE_WS) {
+        await this.connect();
+      } else {
+        logger.info('Zerodha WebSocket auto-connect disabled by environment; skipping connect after callback');
+      }
     } catch (err) {
   logger.error({ message: 'Failed to exchange request token', err });
       throw new Error('Failed to authenticate with Zerodha');
@@ -93,6 +101,11 @@ export class ZerodhaService extends EventEmitter {
       throw new Error('No access token available');
     }
 
+    // If a URL isn't provided, only attempt connect when WS is enabled.
+    if (!url && !ZerodhaService.ENABLE_WS) {
+      logger.info('Zerodha WebSocket disabled by environment; connect() skipped');
+      return;
+    }
     try {
       const wsUrl = url || process.env.ZERODHA_WS_URL || ZerodhaService.DEFAULT_WS_URL;
       this.ws = new WebSocket(wsUrl);
