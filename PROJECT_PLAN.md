@@ -1,5 +1,4 @@
 
-```markdown
 ---
 project_name: banknifty-signals
 ---
@@ -9,7 +8,7 @@ project_name: banknifty-signals
 ## 1. Goals & Scope
 - Deliver a **production-ready trading workstation** with:
   - Zerodha live integration (BANKNIFTY + NIFTY + top 10 banks).
-  - Real-time BUY/SELL signals from 47+ rules and the News Sentiment Analysis
+  - Real-time BUY/SELL signals from 47+ rules and the News Sentiment Analysis **Reference RULES.md or docs/rules part-1.md, part-2.md, part-3.md, part-4.md**
   - Live dashboard with charts, tooltips, and multi-timeframe signals.
   - Backtesting module with visualization & exports.
   - Sentiment integration.
@@ -83,6 +82,28 @@ project_name: banknifty-signals
 - GitHub Actions pipeline:
   - Lint + tests → Docker build → push to registry → deploy.
 
+## 10. CI/CD & Milestone publishing (short)
+
+Purpose: provide a small, discoverable description of how CI and milestone publishing works so maintainers can validate readiness before publishing.
+
+- CI policy
+  - PRs should run unit tests and linters by default. Integration tests that contact emulated external services should be excluded from PR CI and run via a manual workflow (see `.github/workflows/integration-manual.yml`).
+  - The repository includes a lightweight validator for `config/defaults.json` which the CI runs (see `backend/scripts/validate-defaults.js`).
+
+- Milestone publishing policy
+  - Milestones are published intentionally: before publishing, the owner must create a marker file `.milestone_done` at repo root (or set `PUBLISH_MILESTONE=1`). This prevents accidental publishes.
+  - The `scripts/publish_milestone.js` helper finds the first `PR_DRAFT_*.md` file at the repo root and uses it as the draft PR body when creating the Draft PR via `gh pr create --draft`.
+  - `PR_DRAFT_*.md` files are the canonical PR body templates for milestone publishes. Keep at least one `PR_DRAFT_<MILESTONE>.md` in the repo root before publishing.
+
+- Quick publish checklist
+  1. Ensure `STATUS.md` reflects readiness and lists the milestone blocking items.
+  2. Ensure a `PR_DRAFT_*.md` exists in the repo root with change summary and test results.
+  3. Run `npm ci` in `backend` and confirm `backend/package-lock.json` is unchanged or committed.
+  4. Run unit tests locally (`npm test`) and optionally `npm run test:integration` for integration harness.
+  5. Create `.milestone_done` at repo root and run `npm run publish:milestone` (this will push the current branch and create a Draft PR). Do not run this unless you intend to publish.
+
+Keep `STATUS.md` as the single source of truth for milestone readiness; update it before publishing.
+
 ## 8. Deployment Checklist
 - [ ] Configure `.env` with API keys and DB URLs.
 - [ ] Run migrations + seeders.
@@ -98,4 +119,16 @@ project_name: banknifty-signals
 - **PostgreSQL + Redis** for durability and speed.
 - **Prometheus/Grafana** for real-time monitoring.
 - **Single-user local app** reduces security surface.
+
+## 10. Milestone Policy
+
+- Each stage in Section 4 ("Build Stages & Milestones") must be validated before any branch is pushed.
+- Validation requires:
+  - ✅ Code + tests completed locally
+  - ✅ CI workflows covering unit and integration tests
+  - ✅ Documentation updated (`PROJECT_PLAN.md`, `STATUS.md`, PR_DRAFT_*.md)
+  - ✅ Lockfiles committed
+  - ✅ TODO/placeholder sweep complete
+- A milestone is only considered **Done** when these conditions are met and marked in `STATUS.md`.
+- Only then push the branch and open a Draft PR on GitHub.
 

@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "prepare": "husky install",
+    "publish:milestone": "node ./scripts/publish_milestone.js",
     "check-no-artifacts": "bash .husky/check-no-artifacts.sh"
   },
   "devDependencies": {
-    "husky": "^8.0.0"
+    "husky": "^8.0.3"
   }
 }

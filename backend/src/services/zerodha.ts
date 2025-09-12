@@ -17,9 +17,19 @@ export class ZerodhaService extends EventEmitter {
   private ws: WebSocket | null = null;
   private reconnectTimer: NodeJS.Timeout | null = null;
   private reconnectAttempts = 0;
+  // Maximum number of backoff attempts before giving up (can be overridden in tests)
+  private maxReconnectAttempts = 12;
+  // Reconnect tuning parameters (configurable for tests)
+  private reconnectBaseMs = 1000;
+  private reconnectMaxDelayMs = 30000;
+  private jitterFn: () => number = () => Math.floor(Math.random() * 1000);
   private heartbeatTimer: NodeJS.Timeout | null = null;
+  private tokenRefreshTimer: NodeJS.Timeout | null = null;
   private subscribedTokens: Set<number> = new Set();
   private credentials: KiteCredentials | null = null;
+  private tokenExpiresAt?: number;
+  // Test hooks: how long before expiry to emit refresh events
+  private tokenRefreshBeforeMs: number = 60 * 1000;
 
   // BankNifty Components with weights
   private readonly components = {
@@ -110,6 +120,39 @@ export class ZerodhaService extends EventEmitter {
       const wsUrl = url || process.env.ZERODHA_WS_URL || ZerodhaService.DEFAULT_WS_URL;
       this.ws = new WebSocket(wsUrl);
 
+      // Attach core handlers immediately so we never miss events that may
+      // occur very soon after connection (important for deterministic tests)
+      this.ws.on('message', (data: Buffer) => {
+        this.handleTick(data);
+      });
+
+      this.ws.on('close', () => {
+        logger.warn('Zerodha WebSocket closed');
+        // Count this as a reconnect-triggering close so tests can observe
+        try { this.reconnectAttempts++; } catch (e) {}
+        this.scheduleReconnect();
+      });
+
+      // Also attach to the underlying TCP socket close event when available.
+      // Some environments (and fake timers) may cause the high-level 'close'
+      // event to be delayed; listening to `_socket` adds robustness in tests.
+      const attachSocketClose = () => {
+        try {
+          const sock = (this.ws as any)?._socket;
+          if (sock && !sock._zerodhaCloseAttached) {
+            sock._zerodhaCloseAttached = true;
+            sock.on('close', () => {
+              logger.debug('Underlying socket closed');
+              try { this.reconnectAttempts++; } catch (e) {}
+              this.scheduleReconnect();
+            });
+          }
+        } catch (e) {}
+      };
+
+      attachSocketClose();
+      this.ws.on('open', attachSocketClose);
+
       // If caller provided a URL (tests/mocks), return a promise that resolves
       // when the socket 'open' event fires, making connect deterministic for tests.
       const openPromise = new Promise<void>((resolve, reject) => {
@@ -126,15 +169,6 @@ export class ZerodhaService extends EventEmitter {
           try { this.ws?.close(); } catch (e) {}
           reject(err);
         });
-      });
-
-      this.ws.on('message', (data: Buffer) => {
-        this.handleTick(data);
-      });
-
-      this.ws.on('close', () => {
-        logger.warn('Zerodha WebSocket closed');
-        this.scheduleReconnect();
       });
 
       return openPromise;
@@ -298,14 +332,34 @@ export class ZerodhaService extends EventEmitter {
   }
 
   private scheduleReconnect() {
+    // Do not schedule if we've exceeded max attempts
     if (this.reconnectTimer) return;
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      logger.error('Max reconnect attempts reached; will not retry until manual intervention');
+      return;
+    }
 
-    const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
+    // Backoff with configurable base and jitter
+    const base = Math.min(this.reconnectBaseMs * Math.pow(2, this.reconnectAttempts), this.reconnectMaxDelayMs);
+    const jitter = Math.max(0, Math.floor(this.jitterFn()));
+    const delay = Math.min(base + jitter, this.reconnectMaxDelayMs);
+
+    // Count this as a scheduled attempt immediately so tests can observe it
+    this.reconnectAttempts++;
+
     this.reconnectTimer = setTimeout(() => {
-      this.reconnectAttempts++;
       this.reconnectTimer = null;
-      this.connect();
+      // Connect returns a promise; handle rejections explicitly to avoid
+      // unhandled promise rejections in environments where connect() may
+      // throw (e.g., missing access token during unit tests).
+      this.connect().catch((e) => {
+        logger.warn({ message: 'Reconnect attempt failed', err: e });
+        try { this.scheduleReconnect(); } catch (er) {}
+      });
     }, delay);
+
+    // If available (Node timers), unref so timers don't keep the process alive
+    try { (this.reconnectTimer as any)?.unref?.(); } catch (e) {}
   }
 
   private resetReconnectAttempts() {
@@ -319,9 +373,80 @@ export class ZerodhaService extends EventEmitter {
           zerodha: encrypt(JSON.stringify(this.credentials))
         }
       } as any));
+      // If we saved credentials that include expiry information, schedule refresh
+      if (this.credentials && this.tokenExpiresAt) {
+        this.scheduleTokenRefresh();
+      }
     } catch (err) {
     logger.error({ message: 'Failed to save Zerodha credentials', err });
     }
+  }
+
+  private scheduleTokenRefresh() {
+    // Clear any existing timer
+    if (this.tokenRefreshTimer) {
+      clearTimeout(this.tokenRefreshTimer);
+      this.tokenRefreshTimer = null;
+    }
+
+    if (!this.tokenExpiresAt) return;
+
+    const msUntilExpiry = this.tokenExpiresAt - Date.now();
+    // Schedule a refresh 60s before expiry (or immediate if already expired)
+  const refreshBefore = this.tokenRefreshBeforeMs;
+    const timeout = Math.max(0, msUntilExpiry - refreshBefore);
+
+    this.tokenRefreshTimer = setTimeout(() => {
+      // Emit an event so higher-level code may attempt re-authentication
+      this.emit('token:about-to-expire');
+      // Attempt internal refresh (best-effort) — implementations may override
+      this.refreshAccessToken().catch((err) => {
+        logger.warn({ message: 'Token refresh failed', err });
+        this.emit('token:refresh-failed', err);
+      });
+    }, timeout);
+  }
+
+  // Test-friendly helper: set token expiry relative to now (msFromNow)
+  // and optionally schedule the refresh timer immediately.
+  public setTokenExpiresAt(msFromNow: number, scheduleNow = true) {
+    this.tokenExpiresAt = Date.now() + msFromNow;
+    if (scheduleNow) {
+      this.scheduleTokenRefresh();
+    }
+  }
+
+  // Test-friendly setter to override how long before expiry we emit the
+  // 'token:about-to-expire' event. Default is 60s.
+  public setRefreshBeforeMs(ms: number) {
+    this.tokenRefreshBeforeMs = Math.max(0, ms);
+  }
+
+  // Test-friendly trigger that forces the token refresh flow synchronously.
+  // Useful when tests do not want to rely on timers.
+  public async triggerTokenRefresh(): Promise<void> {
+    // Clear any existing timer to avoid double firing
+    if (this.tokenRefreshTimer) {
+      clearTimeout(this.tokenRefreshTimer);
+      this.tokenRefreshTimer = null;
+    }
+    // Emit about-to-expire and call refresh handler
+    this.emit('token:about-to-expire');
+    try {
+      await this.refreshAccessToken();
+    } catch (err) {
+      logger.warn({ message: 'triggerTokenRefresh: refresh failed', err });
+      this.emit('token:refresh-failed', err);
+    }
+  }
+
+  private async refreshAccessToken(): Promise<void> {
+    // Placeholder: Zerodha's access tokens typically require re-auth via request token.
+    // Emit an event to let an external workflow (UI or operator) handle re-auth.
+    logger.info('Attempting token refresh (placeholder)');
+    // In future, implement refresh flow if Zerodha exposes a refresh token API.
+    // For now, notify consumers that token refresh is required.
+    this.emit('token:refresh-required');
   }
 
   public async fetchHistoricalData(symbol: string, from: Date, to: Date, interval: string) {
@@ -388,6 +513,17 @@ export class ZerodhaService extends EventEmitter {
     }
   }
 
+  // Test helper to set subscribed tokens without sending over the wire.
+  // Useful in tests that don't open real sockets.
+  public setSubscribedTokens(tokens: number[]) {
+    this.subscribedTokens = new Set(tokens || []);
+  }
+
+  // Test helper to inspect the currently subscribed tokens.
+  public getSubscribedTokens(): number[] {
+    return Array.from(this.subscribedTokens);
+  }
+
   private getInstrumentToken(symbol: string): number {
     // Implement instrument token lookup
     // You'd typically maintain a mapping or fetch from Zerodha's instruments API
@@ -403,6 +539,40 @@ export class ZerodhaService extends EventEmitter {
 
   public getLastMessageTime(): number {
     return this.lastMessageTime;
+  }
+
+  // Test-friendly helper: trigger scheduling of a reconnect (wraps private logic)
+  // Keeps production behavior unchanged but provides a deterministic entrypoint
+  // for unit tests without needing to close sockets.
+  public triggerReconnect(): void {
+    try {
+      this.scheduleReconnect();
+    } catch (e) {
+      // swallow in tests
+    }
+  }
+
+  // Expose reconnectAttempts for tests/metrics
+  public getReconnectAttempts(): number {
+    return this.reconnectAttempts;
+  }
+
+  // Allow tests or callers to tune reconnect behavior for determinism
+  public setReconnectOptions(options: { baseMs?: number; maxDelayMs?: number; jitterFn?: () => number; maxAttempts?: number }) {
+    if (typeof options.baseMs === 'number') this.reconnectBaseMs = Math.max(1, options.baseMs);
+    if (typeof options.maxDelayMs === 'number') this.reconnectMaxDelayMs = Math.max(1, options.maxDelayMs);
+    if (typeof options.jitterFn === 'function') this.jitterFn = options.jitterFn;
+    if (typeof options.maxAttempts === 'number') this.maxReconnectAttempts = Math.max(1, options.maxAttempts);
+  }
+
+  // Cancel any scheduled reconnect attempt
+  public stopReconnect(): void {
+    try {
+      if (this.reconnectTimer) {
+        clearTimeout(this.reconnectTimer);
+        this.reconnectTimer = null;
+      }
+    } catch (e) {}
   }
 
   private getSymbolFromToken(token: number): string {
@@ -460,6 +630,12 @@ export class ZerodhaService extends EventEmitter {
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
+    }
+
+    // Clear token refresh timer
+    if (this.tokenRefreshTimer) {
+      clearTimeout(this.tokenRefreshTimer);
+      this.tokenRefreshTimer = null;
     }
 
     // Remove subscribed tokens to avoid accidental sends

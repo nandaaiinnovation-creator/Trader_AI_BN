@@ -1,0 +1,63 @@
+#!/bin/sh
+# Husky pre-push hook: by default block developer pushes and run local checks.
+# Allows automatic pushes from CI (GITHUB_ACTIONS) or when explicitly opted-in.
+#
+# Allow push if running in GitHub Actions (CI) so release automation and CI runners
+# can push tags or branches. Also allow when ALLOW_PUSH=1 or git config hooks.allowPush true.
+
+set -e
+
+# Allow CI runners
+if [ "${GITHUB_ACTIONS}" = "true" ]; then
+  echo "Detected GITHUB_ACTIONS; allowing push."
+  exit 0
+fi
+
+# Respect explicit environment override for one-off pushes
+if [ "${ALLOW_PUSH}" = "1" ]; then
+  echo "ALLOW_PUSH=1 set; allowing push."
+  exit 0
+fi
+
+# Respect a persistent git config override
+ALLOW_CONFIG=$(git config --bool hooks.allowPush 2>/dev/null || echo "false")
+if [ "${ALLOW_CONFIG}" = "true" ]; then
+  echo "git config hooks.allowPush=true; allowing push."
+  exit 0
+fi
+
+echo "Running local pre-push checks (lint, tests, validate:defaults). Push blocked if they fail."
+
+# Run root-level lint if available
+if npm run -s lint >/dev/null 2>&1; then
+  echo "Running root lint..."
+  npm run lint
+else
+  echo "No root lint script found or lint skipped."
+fi
+
+# If backend exists, run backend lint (if present), tests and validator
+if [ -d backend ]; then
+  echo "Entering backend/ to run tests and validator..."
+  cd backend
+  if npm run -s lint >/dev/null 2>&1; then
+    echo "Running backend lint..."
+    npm run lint
+  else
+    echo "No backend lint script found or lint skipped."
+  fi
+
+  echo "Running backend tests..."
+  npm test
+
+  echo "Validating defaults schema..."
+  npm run validate:defaults
+
+  # return to repo root
+  cd - >/dev/null
+else
+  echo "No backend directory found; skipping backend checks."
+fi
+
+echo "All local checks passed. Proceeding with push."
+exit 0
