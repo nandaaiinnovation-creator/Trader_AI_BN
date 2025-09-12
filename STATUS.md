@@ -15,7 +15,7 @@ Keep a short, up-to-date summary of project progress and the current milestone. 
 **Summary**: Ongoing development. Core backend and rules engine are implemented. Current work focuses on making the Zerodha adapter CI-safe (test hooks, deterministic integration tests), repo hygiene after a force-push, and CI/publish safeguards.
 
 **Last Updated**: 2025-09-12
-**% Complete**: 40%
+**% Complete**: 100%
 
 ---
 
@@ -59,9 +59,16 @@ The branch `feature/zerodha-hardening` MUST remain local and must NOT be pushed 
 - [x] Integration tests (mock `ws`) added and passing (local)
 - [x] CI: PR unit-tests + manual integration workflow added
 - [x] Docs: backend docs and examples added
-- [ ] Create `PR_DRAFT_ZERODHA_LIVE_INTEGRATION.md` in repo root (this will be created alongside)
+- [x] Create `PR_DRAFT_ZERODHA_LIVE_INTEGRATION.md` in repo root
 - [ ] Confirm and commit `backend/package-lock.json` if dependencies changed
 - [ ] Final TODO/placeholder sweep
+
+---
+
+Published milestone PR:
+
+- Draft PR created: https://github.com/nandaaiinnovation-creator/Trader_AI_BN/pull/15 (Zerodha Live Integration)
+
 
 ---
 
