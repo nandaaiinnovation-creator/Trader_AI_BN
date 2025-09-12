@@ -1,107 +1,78 @@
 
-```markdown
 ---
 project_name: banknifty-signals
 ---
 
 # STATUS.md
 
-## Instructions for Updating
-- Update **date & time** and **% Complete** each time progress is made.
-- Mark tasks in **checklists**.
-- Add to **Change Log** for each commit/milestone.
-- Keep this file **in sync with Git history**.
+## Purpose
+Keep a short, up-to-date summary of project progress and the current milestone. Update the **Last Updated** and **% Complete** fields when making progress. This file is used by the milestone publish script and as the single source of truth for milestone readiness.
 
 ---
 
-## Project Status (Baseline)
+## Project Status
 
-<<<<<<< HEAD
-**Summary**: Ongoing development. Core backend and rules are implemented; integration, docs, and CI improvements are in progress.
-**Last Updated**: 2025-09-12
-````markdown
+**Summary**: Ongoing development. Core backend and rules engine are implemented. Current work focuses on making the Zerodha adapter CI-safe (test hooks, deterministic integration tests), repo hygiene after a force-push, and CI/publish safeguards.
 
-```markdown
----
-project_name: banknifty-signals
----
-
-# STATUS.md
-
-## Instructions for Updating
-- Update **date & time** and **% Complete** each time progress is made.
-- Mark tasks in **checklists**.
-- Add to **Change Log** for each commit/milestone.
-- Keep this file **in sync with Git history**.
-
----
-
-## Project Status (Baseline)
-
-**Summary**: Ongoing development. Core backend and rules are implemented; integration, docs, and CI improvements are in progress.
 **Last Updated**: 2025-09-12
 **% Complete**: 40%
 
 ---
 
-### Phase Tracking update status as Pending/In Progress/Completed
+### Phase Tracking (high level)
 
 | Phase | Description | Status |
 |-------|-------------|--------|
-| Base Infrastructure | Docker, DB, Redis, migrations | ⬜  |
-| Zerodha Integration | OAuth, WS adapter, tokens | 🟩 In Progress |
-| Rules Engine | Implement all 47 rules | ⬜  |
-| Signal Generation | Composite signals, DB, WS | ⬜  |
-| Frontend Dashboard | Charts, rules, feed | ⬜  |
-| Backtesting | Modes, metrics, visualization | ⬜ |
-| Sentiment Module | API connectors, filters | ⬜  |
-| Observability & Tests | Prometheus, logging, CI/CD | 🟩 In Progress |
+| Base Infrastructure | Docker, DB, Redis, migrations | ⬜ Pending |
+| Zerodha Integration | OAuth, WS adapter, tokens, test harness | � In Progress |
+| Rules Engine | Implement 47 rules, config persistence | ⬜ Pending |
+| Signal Generation | Composite signals, DB, WS broadcast | ⬜ Pending |
+| Frontend Dashboard | Charts, rules panel, signal feed | ⬜ Pending |
+| Backtesting | Modes, metrics, visualization | ⬜ Pending |
+| Sentiment Module | API connectors, filters | ⬜ Pending |
+| Observability & Tests | Prometheus, logging, CI/CD | � In Progress |
 
 ---
 
-### Tasks: Sample update accordingly
+### Current Zerodha Milestone (what must be present before publishing)
 
-#### Completed ✅
-- [x] Production document reviewed.
-- [x] Documentation baseline (README, PLAN, RULES, STATUS).
+- Zerodha adapter hardening (test hooks, reconnect/backoff, token lifecycle): Done in feature branch `feature/zerodha-hardening` (local).
+- Unit tests: Added and passing locally.
+- Integration tests (safe, in-process mock `ws`): Added and passing locally; integration tests excluded from PR CI by default and run via manual workflow.
+- CI workflows: PR-only unit-test workflow and manual integration runner created.
+- Documentation: `backend/docs/zerodha-refresh-handler.md`, `backend/docs/integration-tests.md`, and `backend/examples/refresh-handler.example.ts` added.
 
-#### In Progress 🔄
-- [ ] Prepare initial Docker stack (backend + DB + Redis).
-- [ ] Configure Prisma/TypeORM schema.
+Blocking items before publishing this milestone (per repo policy):
 
-#### Pending ⬜
-- [ ] Zerodha KiteConnect adapter.
-- [ ] Implement rule modules (R001–R044).
-- [ ] Backtest engine with visualization.
-- [ ] Sentiment provider connectors.
-- [ ] Full CI/CD setup.
+1. Project-level documentation files must reflect new CI/publish flow and how to trigger integrations: `PROJECT_PLAN.md` (reference), `STATUS.md` (this file, updated), and a PR draft file `PR_DRAFT_ZERODHA_LIVE_INTEGRATION.md` must exist (created alongside this update).
+2. Ensure lockfile(s) are updated and committed if dependencies changed (`backend/package-lock.json`).
+3. Sweep for any remaining `TODO`/`WIP` placeholders and resolve or annotate them.
 
----
-
-### Blockers
-- Zerodha API credentials required for live testing.
-- Decision pending: Prisma vs TypeORM (finalize ORM).
+The branch `feature/zerodha-hardening` MUST remain local and must NOT be pushed until the owner marks the milestone Done.
 
 ---
 
-### Next Actions
-- Finalize DB ORM (Prisma/TypeORM).  
-- Implement **Base Infrastructure stage** (Docker + migrations).  
-- Prepare initial **unit tests** for indicators.
+### Tasks (short checklist)
+
+- [x] Zerodha adapter: test hooks and reconnect hardening (local branch)
+- [x] Unit tests added and passing (local)
+- [x] Integration tests (mock `ws`) added and passing (local)
+- [x] CI: PR unit-tests + manual integration workflow added
+- [x] Docs: backend docs and examples added
+- [ ] Create `PR_DRAFT_ZERODHA_LIVE_INTEGRATION.md` in repo root (this will be created alongside)
+- [ ] Confirm and commit `backend/package-lock.json` if dependencies changed
+- [ ] Final TODO/placeholder sweep
 
 ---
 
-### Risks
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Zerodha API expiry (daily) | High | Auto-reconnect + prompt reauth |
-| OI data dependency | Medium | Graceful disable + UI status |
-| Backtest performance | Medium | Optimize queries + caching |
+### Change Log (recent)
+- **2025-09-12**: Added deterministic test hooks and hardening to `backend/src/services/zerodha.ts`.
+- **2025-09-12**: Added unit and integration tests (mock `ws`); updated `backend/package.json` with integration test scripts.
+- **2025-09-12**: Added GitHub Actions workflows: PR-only unit-test CI and manual integration runner.
 
 ---
 
-### Change Log
-- **2025-09-12**: Initial STATUS.md baseline created.  
-- **2025-09-12**: Added config defaults validator (`ajv`) and backend `validate:defaults` script; CI `build-and-test` job updated to run the validator. Documentation (`README.md`) updated with validator instructions.
+### Notes for reviewers
 
-````
+- This file is intentionally concise. For implementation details see `backend/src/services/zerodha.ts`, `backend/tests/*`, and `backend/docs/*`.
+- Per project policy, do not push or create PRs for `feature/zerodha-hardening` until the milestone is explicitly marked Done by the project owner.
