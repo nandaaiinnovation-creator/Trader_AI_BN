@@ -129,3 +129,9 @@ If validation fails, schema errors will be printed; fix `config/defaults.json` a
 
 ## License
 MIT
+
+## Developer tooling note
+
+Decision: the JSON Schema validator (`ajv`) is intentionally kept in `backend/devDependencies` because the validator script `backend/scripts/validate-defaults.js` is backend-scoped and CI runs it from the `backend` directory. Keeping the dependency local to `backend` makes installs lighter for contributors who only work on docs or other top-level parts of the repo.
+
+If you'd like to centralize dev tooling (move `ajv` to the repo root), open an issue or PR; I'll help migrate CI and scripts accordingly.
