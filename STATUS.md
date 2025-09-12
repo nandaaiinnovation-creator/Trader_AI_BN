@@ -28,7 +28,7 @@ Keep a short, up-to-date summary of project progress and the current milestone. 
 | Zerodha Integration | OAuth, WS adapter, tokens, test harness | ✅ Done |
 | Base Infrastructure | Docker, DB, Redis, migrations | � In Progress |
 | Rules Engine | Implement 47 rules, config persistence | ⬜ Pending |
-| Signal Generation | Composite signals, DB, WS broadcast | ⬜ Pending |
+| Signal Generation | Composite signals, DB, WS broadcast | 🟧 In Progress |
 | Frontend Dashboard | Charts, rules panel, signal feed | ⬜ Pending |
 | Backtesting | Modes, metrics, visualization | ⬜ Pending |
 | Sentiment Module | API connectors, filters | ⬜ Pending |

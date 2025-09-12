@@ -3,6 +3,7 @@ import { BaseRule, RuleErrorType } from './rules/base';
 import { RulesConfig } from '../config/rules';
 import { logger } from '../utils/logger';
 import { redisClient } from '../utils/helpers';
+import SignalOrchestrator from './signalOrchestrator';
 
 // Allow Node-style require in mixed TS/JS runtime
 declare const require: any;
@@ -12,9 +13,11 @@ export class RulesEngine {
   private rules: Map<string, BaseRule> = new Map();
   private config: RulesConfig;
   private lastSignalTime: Map<string, number> = new Map();
+  private orchestrator?: SignalOrchestrator;
   
-  constructor(config: RulesConfig) {
+  constructor(config: RulesConfig, orchestrator?: SignalOrchestrator) {
     this.config = config;
+    this.orchestrator = orchestrator;
     this.initializeRules();
   }
 
@@ -139,11 +142,27 @@ export class RulesEngine {
     // Generate signal if threshold met
     let signal: 'BUY' | 'SELL' | null = null;
   const signalThreshold = compositeCfg && compositeCfg.params && compositeCfg.params.signal_threshold ? compositeCfg.params.signal_threshold : 0.5;
-  if (normalizedScore >= signalThreshold) {
+    if (normalizedScore >= signalThreshold) {
       signal = this.determineDirection(context, results);
       if (signal) {
         this.lastSignalTime.set(symbol, now);
       }
+    }
+
+    // Non-blocking: forward to orchestrator if configured
+    if (signal && this.orchestrator) {
+      const payload = {
+        symbol: symbol,
+        timeframe: context.timeframe,
+        signal,
+        score: normalizedScore,
+        firedRules: results,
+        timestamp: now,
+      };
+      // don't await, but log on error
+      this.orchestrator.handle(payload as any).catch((err: any) => {
+        try { logger.warn(`orchestrator.handle failed: ${err && err.message ? err.message : String(err)}`); } catch (e) { /* noop */ }
+      });
     }
 
     return { signal, score: normalizedScore, firedRules: results };
