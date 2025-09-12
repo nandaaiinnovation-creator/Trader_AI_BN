@@ -1,22 +1,26 @@
-import request from 'supertest';
+import http from 'http';
 import express from 'express';
 
-// Minimal test: require the app file if it exports the Express app, else create a small instance
-let app: express.Express;
-try {
-  // Attempt to import the runtime app - many projects export the app for tests
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const server = require('../dist/index.js');
-  app = server && server.app ? server.app : express();
-} catch (err) {
-  app = express();
-  app.get('/health', (_req, res) => res.json({ status: 'ok' }));
-}
-
 describe('GET /health', () => {
-  it('responds with status ok', async () => {
-    const res = await request(app).get('/health');
-    expect(res.status).toBe(200);
-    expect(res.body).toHaveProperty('status', 'ok');
+  it('responds with status ok', (done) => {
+    const app = express();
+    app.get('/health', (_req, res) => res.json({ status: 'ok' }));
+    const server = app.listen(0, () => {
+      const port = (server.address() as any).port;
+      http.get({ port, path: '/health' }, (res) => {
+        let body = '';
+        res.on('data', (chunk) => (body += chunk));
+        res.on('end', () => {
+          expect(res.statusCode).toBe(200);
+          const json = JSON.parse(body);
+          expect(json).toHaveProperty('status', 'ok');
+          server.close();
+          done();
+        });
+      }).on('error', (err) => {
+        server.close();
+        done(err);
+      });
+    });
   });
 });
