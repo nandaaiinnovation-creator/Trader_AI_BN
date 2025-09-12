@@ -18,3 +18,7 @@ yarn-error.log*
 # local env
 .env
 .env.*
+
+# backend build and coverage (project-specific)
+/backend/dist/
+/backend/coverage/
