@@ -139,3 +139,29 @@ These are intentionally small, low-risk changes to unblock integration and deplo
 - A milestone is only considered **Done** when these conditions are met and marked in `STATUS.md`.
 - Only then push the branch and open a Draft PR on GitHub.
 
+---
+
+## Milestone-driven workflow (enforced)
+
+When advancing a milestone (starting with Base Infrastructure), follow this split of responsibilities and the minimal local-only workflow:
+
+- Local edits (what the agent may create/update):
+  - Code, configs, migrations, seeders, scripts, and documentation only.
+  - Add/update: `Dockerfile`, `docker-compose.yml`, `/health` endpoint, DB migration files, seeder files, scripts, and `PROJECT_PLAN.md`/`STATUS.md`/`README.md`.
+  - Run lightweight checks locally only: `npm run validate:defaults`, `npm test`.
+  - Do NOT run `docker compose up` or other container-based commands locally.
+
+- CI responsibilities (GitHub Actions):
+  - Full infra validation must run in CI on PRs and manual workflow: `docker compose up`, Postgres + Redis startup checks, `npm run db:migrate`, seeding, healthcheck, and test execution.
+  - The CI workflow `infra-validation.yml` is included in the repo and will run on PRs touching infra files.
+
+- Milestone policy:
+  - Stay milestone-driven. Continue advancing only the Base Infrastructure milestone until it is fully completed and marked Done in both `PROJECT_PLAN.md` and `STATUS.md`.
+  - Push & open Draft PRs for infra/config changes. Small safe fixes may be pushed directly to `main` at owner's discretion, but final merges of milestone branches must be deferred until CI validates the full infra.
+  - A milestone is considered Done when:
+    1. DB migrations + seeders run successfully in CI.
+    2. Healthcheck passes in CI and smoke tests succeed.
+    3. `STATUS.md` and `PROJECT_PLAN.md` are updated to reflect Done and documented.
+
+Follow these rules for the Base Infrastructure milestone; after completion, select the next milestone from Section 4 and repeat.
+

@@ -1,3 +1,31 @@
+# BankNifty Signals — Repository README
+
+This repository contains the backend and frontend for a BankNifty trading signals workstation. The repo uses a milestone-driven workflow: milestones are advanced by creating code/config/docs changes, validating lightweight checks locally, and letting CI perform full infra validation.
+
+Local developer workflow (allowed):
+
+- Make code/config/docs changes for the current milestone.
+- Run lightweight checks locally:
+  - `cd backend`
+  - `npm ci`
+  - `npm run validate:defaults`
+  - `npm test`
+- Do NOT run `docker compose up` or spin up Postgres/Redis containers locally as part of milestone work — CI will run those steps to validate infra.
+
+CI responsibility (GitHub Actions):
+
+- The CI workflow `infra-validation.yml` runs on PRs touching infra and will:
+  - Spin up Postgres and Redis containers
+  - Run `npm run db:migrate` (applies SQL migrations)
+  - Run seeders
+  - Execute tests and smoke healthchecks
+
+Milestone publishing policy:
+
+- A milestone is considered Done only when CI successfully validates infra (migrations + seed + healthcheck + tests) and `STATUS.md` and `PROJECT_PLAN.md` are updated to mark Done.
+- Create a Draft PR for milestone branches and wait for CI to pass before merging.
+
+If you have any questions about running or extending the CI infra validation, open an issue or a PR describing the change.
 # Trader_AI_BN — BANKNIFTY signals
 
 ## Owner

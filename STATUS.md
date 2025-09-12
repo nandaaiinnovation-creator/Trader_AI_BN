@@ -53,6 +53,23 @@ The branch `feature/zerodha-hardening` MUST remain local and must NOT be pushed 
 
 ---
 
+### Base Infrastructure (current focus)
+
+We are advancing the Base Infrastructure milestone. The following items have been added and are in-progress in branch `chore/base-infra-migrations`:
+
+- `docker-compose.yml` for Postgres 14, Redis 6, and the backend
+- `/health` endpoint at `GET /health` in `backend/src/index.ts`
+- Initial SQL migration at `backend/src/db/migrations/001_init.sql`
+- Migration runner at `backend/scripts/run_migrations.js`
+- Seeder JSON `backend/src/db/seeders/default_rules.json` and runner `backend/scripts/run_seeders.js`
+
+Milestone policy (short):
+- Local edits: create code, migrations, seeders, docs, and run lightweight checks only (`npm run validate:defaults` and `npm test`). Do NOT run `docker compose up` locally.
+- CI: infra validation will run `docker compose up`, apply migrations, run seeders, and run tests. See `.github/workflows/infra-validation.yml`.
+- A milestone is Done only after CI validates infra (migrations + seed + healthcheck + tests), docs are updated, and `STATUS.md` is marked Done.
+
+---
+
 ### Tasks (short checklist)
 
 - [x] Zerodha adapter: test hooks and reconnect hardening (local branch)
