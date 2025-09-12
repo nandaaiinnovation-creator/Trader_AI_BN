@@ -109,12 +109,23 @@ export class ZerodhaService extends EventEmitter {
     try {
       const wsUrl = url || process.env.ZERODHA_WS_URL || ZerodhaService.DEFAULT_WS_URL;
       this.ws = new WebSocket(wsUrl);
-      
-      this.ws.on('open', () => {
-        logger.info('Connected to Zerodha WebSocket');
-        this.resetReconnectAttempts();
-        this.startHeartbeat();
-        this.subscribe();
+
+      // If caller provided a URL (tests/mocks), return a promise that resolves
+      // when the socket 'open' event fires, making connect deterministic for tests.
+      const openPromise = new Promise<void>((resolve, reject) => {
+        this.ws?.on('open', () => {
+          logger.info('Connected to Zerodha WebSocket');
+          this.resetReconnectAttempts();
+          this.startHeartbeat();
+          this.subscribe();
+          resolve();
+        });
+
+        this.ws?.on('error', (err) => {
+          logger.error({ message: 'Zerodha WebSocket error', err });
+          try { this.ws?.close(); } catch (e) {}
+          reject(err);
+        });
       });
 
       this.ws.on('message', (data: Buffer) => {
@@ -126,20 +137,17 @@ export class ZerodhaService extends EventEmitter {
         this.scheduleReconnect();
       });
 
-      this.ws.on('error', (err) => {
-  logger.error({ message: 'Zerodha WebSocket error', err });
-        this.ws?.close();
-      });
+      return openPromise;
 
     } catch (err) {
-    logger.error({ message: 'Failed to connect to Zerodha WebSocket', err });
+      logger.error({ message: 'Failed to connect to Zerodha WebSocket', err });
       this.scheduleReconnect();
     }
   }
 
   // Public helper used by tests or external flows to trigger a connection
   public async connectTo(url?: string) {
-    return this.connect(url);
+  return this.connect(url);
   }
 
   // Public setter to allow tests to inject credentials without DB access
