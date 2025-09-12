@@ -16,9 +16,31 @@ project_name: banknifty-signals
 
 ## Project Status (Baseline)
 
-**Summary**: 
-**Last Updated**:  
-**% Complete**: 
+<<<<<<< HEAD
+**Summary**: Ongoing development. Core backend and rules are implemented; integration, docs, and CI improvements are in progress.
+**Last Updated**: 2025-09-12
+````markdown
+
+```markdown
+---
+project_name: banknifty-signals
+---
+
+# STATUS.md
+
+## Instructions for Updating
+- Update **date & time** and **% Complete** each time progress is made.
+- Mark tasks in **checklists**.
+- Add to **Change Log** for each commit/milestone.
+- Keep this file **in sync with Git history**.
+
+---
+
+## Project Status (Baseline)
+
+**Summary**: Ongoing development. Core backend and rules are implemented; integration, docs, and CI improvements are in progress.
+**Last Updated**: 2025-09-12
+**% Complete**: 40%
 
 ---
 
@@ -27,13 +49,13 @@ project_name: banknifty-signals
 | Phase | Description | Status |
 |-------|-------------|--------|
 | Base Infrastructure | Docker, DB, Redis, migrations | ⬜  |
-| Zerodha Integration | OAuth, WS adapter, tokens | ⬜  |
+| Zerodha Integration | OAuth, WS adapter, tokens | 🟩 In Progress |
 | Rules Engine | Implement all 47 rules | ⬜  |
 | Signal Generation | Composite signals, DB, WS | ⬜  |
 | Frontend Dashboard | Charts, rules, feed | ⬜  |
 | Backtesting | Modes, metrics, visualization | ⬜ |
 | Sentiment Module | API connectors, filters | ⬜  |
-| Observability & Tests | Prometheus, logging, CI/CD | ⬜ |
+| Observability & Tests | Prometheus, logging, CI/CD | 🟩 In Progress |
 
 ---
 
@@ -80,3 +102,6 @@ project_name: banknifty-signals
 
 ### Change Log
 - **2025-09-12**: Initial STATUS.md baseline created.  
+- **2025-09-12**: Added config defaults validator (`ajv`) and backend `validate:defaults` script; CI `build-and-test` job updated to run the validator. Documentation (`README.md`) updated with validator instructions.
+
+````

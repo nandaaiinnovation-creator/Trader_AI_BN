@@ -22,6 +22,11 @@ jobs:
           ZERODHA_ENABLE_WS: 'false'
         run: npm ci
         working-directory: ./backend
+      - name: Validate config defaults
+        working-directory: ./backend
+        run: |
+          set -e
+          npm run validate:defaults
       - name: Fail on high/critical npm audit findings
         working-directory: ./backend
         run: |

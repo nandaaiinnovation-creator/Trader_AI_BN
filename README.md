@@ -1,6 +1,13 @@
-# Trader_AI_BN — BANKNIFTY signals backend
+# Trader_AI_BN — BANKNIFTY signals
+
+## Owner
+- Primary Owner: Nanda Kishore Gade  
 
 This repository contains the BANKNIFTY trading rules engine and backend. The project uses TypeScript, Jest (ts-jest) for tests, and GitHub Actions for CI.
+
+**banknifty-signals** is a full-stack trading workstation for **BANKNIFTY** and related indices.  
+It connects directly to **Zerodha KiteTicker**, applies a **47+ rule engine** (trend, momentum, volume, OI, sentiment), and produces real-time BUY/SELL signals on multiple timeframes.  
+It supports **live charts, backtesting, optional sentiment integration, and persistent storage** via PostgreSQL and Redis, fully containerized with Docker.
 
 Quick start (PowerShell)
 
@@ -36,12 +43,37 @@ Notes
 
 ## Overview
 A full-featured, production-ready trading workstation for BANKNIFTY, NIFTY, and 10 BankNifty components, powered by Zerodha KiteConnect and KiteTicker. Features:
-- Real-time signals from a 32-rule engine
+- Real-time signals from a 47-rule engine
 - Candlestick charts (TradingView lightweight-charts v4.1.0)
-- Backtesting, paper trading, sentiment integration
+- Backtesting, sentiment integration
 - PostgreSQL + Redis
 - Containerized with Docker Compose
 - Single-user, local workstation
+
+## Key Features
+- **Real-time signals** from 47+ configurable rules.
+- **Dashboard** with candlestick charts (TradingView lightweight-charts).
+- **Multi-timeframe aggregation**: 1m, 3m, 5m, 15m.
+- **Rule explanations** with tooltips + per-rule scoring.
+- **Backtesting** with multiple modes (single, grid, Monte Carlo).
+- **Sentiment integration** (Webz.io, Tiingo, Alpha Vantage).
+- **Full persistence** with PostgreSQL & Redis.
+- **Containerized**: One command to spin up full stack with Docker.
+
+git clone https://github.com/nandaaiinnovation-creator/Trader_AI_BN.git
+cd banknifty-signals
+
+##Instructions
+
+- **Always read this README.md first** for the latest context.  
+- `PROJECT_PLAN.md` and `RULES.md` define the *fixed scope, architecture, and constraints*.  
+- `STATUS.md` is a **dynamic progress tracker**:
+  - It can be updated automatically by the contributors.
+  - It should always reflect the most recent project state (% complete, blockers, tasks).
+  - Treat it as disposable/overwritable since README.md holds the authoritative context.
+- Update workflow:
+  1. Read README.md → check PROJECT_PLAN.md + RULES.md → then update STATUS.md.
+  2. Append updates in STATUS.md rather than editing history in README.md.
 
 ## Quick Start
 1. Copy `.env.example` to `.env` and fill in your Zerodha API keys and secrets.
@@ -76,6 +108,24 @@ A full-featured, production-ready trading workstation for BANKNIFTY, NIFTY, and 
 
 ## Full Documentation
 See inline code comments and API docs for details on endpoints, rules, and configuration.
+
+## Validate defaults
+
+We keep example tunables in `config/defaults.json` and a JSON Schema in `config/defaults.schema.json`.
+
+To validate the defaults locally (recommended):
+
+PowerShell commands (run from the repo root `banknifty-signals`):
+
+```powershell
+Set-Location D:\Nanda_AI\GIT_BN_Project\banknifty-signals\backend
+npm ci
+npm run validate:defaults
+```
+
+CI note: the repository CI will run the same validator as part of the `build-and-test` job (it runs `npm ci` in `./backend` then `npm run validate:defaults`).
+
+If validation fails, schema errors will be printed; fix `config/defaults.json` accordingly and re-run the validator.
 
 ## License
 MIT
