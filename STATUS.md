@@ -15,6 +15,7 @@ Keep a short, up-to-date summary of project progress and the current milestone. 
 **Summary**: Ongoing development. Core backend and rules engine are implemented. Current work focuses on making the Zerodha adapter CI-safe (test hooks, deterministic integration tests), repo hygiene after a force-push, and CI/publish safeguards.
 
 **Last Updated**: 2025-09-12
+**Last Updated**: 2025-09-13
 **% Complete**: 100%
 
 ---
@@ -23,7 +24,7 @@ Keep a short, up-to-date summary of project progress and the current milestone. 
 
 | Phase | Description | Status |
 |-------|-------------|--------|
-| Base Infrastructure | Docker, DB, Redis, migrations | ⬜ Pending |
+| Base Infrastructure | Docker, DB, Redis, migrations | ✅ Done |
 | Zerodha Integration | OAuth, WS adapter, tokens, test harness | ✅ Done |
 | Base Infrastructure | Docker, DB, Redis, migrations | � In Progress |
 | Rules Engine | Implement 47 rules, config persistence | ⬜ Pending |
@@ -80,12 +81,16 @@ Milestone policy (short):
 - [x] Create `PR_DRAFT_ZERODHA_LIVE_INTEGRATION.md` in repo root
 - [ ] Confirm and commit `backend/package-lock.json` if dependencies changed
 - [ ] Final TODO/placeholder sweep
+- [x] Confirm and commit `backend/package-lock.json` if dependencies changed
+- [x] Final TODO/placeholder sweep
 
 ---
 
 Published milestone PR:
 
 - Draft PR created: https://github.com/nandaaiinnovation-creator/Trader_AI_BN/pull/15 (Zerodha Live Integration)
+- Draft PR created: https://github.com/nandaaiinnovation-creator/Trader_AI_BN/pull/15 (Zerodha Live Integration)
+- Base Infrastructure PR: https://github.com/nandaaiinnovation-creator/Trader_AI_BN/pull/16 (chore/base-infra-migrations)
 
 
 ---
