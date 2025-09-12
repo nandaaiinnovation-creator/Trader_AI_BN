@@ -1,5 +1,4 @@
 
-```markdown
 ---
 project_name: banknifty-signals
 ---
@@ -9,7 +8,7 @@ project_name: banknifty-signals
 ## 1. Goals & Scope
 - Deliver a **production-ready trading workstation** with:
   - Zerodha live integration (BANKNIFTY + NIFTY + top 10 banks).
-  - Real-time BUY/SELL signals from 47+ rules and the News Sentiment Analysis
+  - Real-time BUY/SELL signals from 47+ rules and the News Sentiment Analysis **Reference RULES.md or docs/rules part-1.md, part-2.md, part-3.md, part-4.md**
   - Live dashboard with charts, tooltips, and multi-timeframe signals.
   - Backtesting module with visualization & exports.
   - Sentiment integration.
