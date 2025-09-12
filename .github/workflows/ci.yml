@@ -1,3 +1,31 @@
+name: CI - Unit Tests
+
+on:
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install dependencies
+        run: |
+          cd backend
+          npm ci
+      - name: Run unit tests only
+        run: |
+          cd backend
+          npm test --silent -- --testPathIgnorePatterns=/tests/integration/
+        env:
+          CI: true
 name: CI
 
 on:

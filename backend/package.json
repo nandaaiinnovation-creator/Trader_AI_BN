@@ -9,12 +9,14 @@
     "dev:tsrun": "ts-node ./src/scripts/run_rules_demo.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "db:migrate": "ts-node src/db/migrations/001_init.sql",
-    "db:seed": "ts-node src/db/seeders.ts",
+    "db:migrate": "node ./scripts/run_migrations.js",
+    "db:seed": "node ./scripts/run_seeders.js",
     "test": "jest --coverage",
     "test:smoke": "node ./tests/check_rules_config.js",
     "test:js": "jest --coverage --runTestsByPath tests/rules/*.js",
     "test:ts": "jest --config jest.config.cjs --coverage",
+  "test:integration": "jest --testPathPattern=tests/integration --config jest.config.cjs",
+  "test:integration:debug": "jest --testPathPattern=tests/integration --config jest.config.cjs --detectOpenHandles --runInBand",
   "run:dist": "node ./dist/scripts/run_rules_demo.js",
   "validate:defaults": "node ./scripts/validate-defaults.js"
   },
@@ -54,6 +56,6 @@
     "ts-node": "10.9.1",
     "ts-node-dev": "2.0.0",
     "typescript": "5.2.2",
-  "ajv": "8.17.1"
+    "ajv": "8.17.1"
   }
 }

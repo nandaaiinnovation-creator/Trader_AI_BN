@@ -26,10 +26,19 @@ export class ZerodhaService extends EventEmitter {
   private heartbeatTimer: NodeJS.Timeout | null = null;
   private tokenRefreshTimer: NodeJS.Timeout | null = null;
   private subscribedTokens: Set<number> = new Set();
+  // Rate-limit tracking for subscribe sends
+  private recentSubscribeTimestamps: number[] = [];
+  private subscribeWindowMs = 1000; // window to count subscribe attempts
+  private maxSubscribePerWindow = 5; // default allowed per window
+  private subscribeBackoffMs = 5000; // backoff when rate limit exceeded
+  private suspendSubscribesUntil?: number;
   private credentials: KiteCredentials | null = null;
   private tokenExpiresAt?: number;
   // Test hooks: how long before expiry to emit refresh events
   private tokenRefreshBeforeMs: number = 60 * 1000;
+  // Optional pluggable token refresh handler provided by higher-level code.
+  // Should be an async function that returns a new access token string.
+  private refreshHandler: (() => Promise<string | undefined>) | null = null;
 
   // BankNifty Components with weights
   private readonly components = {
@@ -51,6 +60,18 @@ export class ZerodhaService extends EventEmitter {
   // Control whether the service should open a real WebSocket connection.
   // Defaults to disabled in test/CI to avoid opening live connections.
   private static readonly ENABLE_WS = (process.env.ZERODHA_ENABLE_WS === 'true') || (process.env.NODE_ENV !== 'test');
+  // By default, auto-resubscribe after reconnect is enabled. Tests can disable it.
+  private autoResubscribe = true;
+
+  // Allow tests or callers to enable/disable automatic resubscribe after reconnect
+  public setAutoResubscribe(enabled: boolean) {
+    this.autoResubscribe = !!enabled;
+  }
+
+  // Inspect current auto-resubscribe setting (testable)
+  public getAutoResubscribe(): boolean {
+    return !!this.autoResubscribe;
+  }
   constructor() {
     super();
     // Don't auto-load credentials during Jest tests to avoid requiring DB/data source initialization
@@ -160,7 +181,7 @@ export class ZerodhaService extends EventEmitter {
           logger.info('Connected to Zerodha WebSocket');
           this.resetReconnectAttempts();
           this.startHeartbeat();
-          this.subscribe();
+          if (this.autoResubscribe) this.subscribe();
           resolve();
         });
 
@@ -441,12 +462,30 @@ export class ZerodhaService extends EventEmitter {
   }
 
   private async refreshAccessToken(): Promise<void> {
-    // Placeholder: Zerodha's access tokens typically require re-auth via request token.
-    // Emit an event to let an external workflow (UI or operator) handle re-auth.
-    logger.info('Attempting token refresh (placeholder)');
-    // In future, implement refresh flow if Zerodha exposes a refresh token API.
-    // For now, notify consumers that token refresh is required.
+    logger.info('Attempting token refresh');
+    // First offer a chance to an injected refresh handler.
+    if (this.refreshHandler) {
+      try {
+        const newToken = await this.refreshHandler();
+        if (newToken) {
+          // Ensure we have a non-null credentials object before assigning
+          const creds: KiteCredentials = this.credentials ?? (this.credentials = { apiKey: '', apiSecret: '' } as KiteCredentials);
+          creds.accessToken = newToken;
+          this.emit('token:refreshed', newToken);
+          return;
+        }
+      } catch (err) {
+        logger.warn({ message: 'refreshHandler failed', err });
+      }
+    }
+
+    // Fallback: emit events for external workflows to handle.
     this.emit('token:refresh-required');
+  }
+
+  // Allow external code to register an async refresh handler
+  public setRefreshHandler(handler: (() => Promise<string | undefined>) | null) {
+    this.refreshHandler = handler;
   }
 
   public async fetchHistoricalData(symbol: string, from: Date, to: Date, interval: string) {
@@ -506,11 +545,64 @@ export class ZerodhaService extends EventEmitter {
 
     this.subscribedTokens = new Set(tokens);
     if (this.ws?.readyState === WebSocket.OPEN) {
+      // Respect rate limiting when sending subscribe frames
+      if (this.isSubscribeSuspended()) {
+        // schedule a delayed attempt after suspension
+        const wait = (this.suspendSubscribesUntil || Date.now()) - Date.now();
+        setTimeout(() => { try { this.subscribe(); } catch (e) {} }, Math.max(0, wait));
+        return;
+      }
       this.ws.send(JSON.stringify({
         a: 'subscribe',
         v: Array.from(this.subscribedTokens)
       }));
+      // record this send for rate-limit tracking
+      this.recordSubscribeAttempt();
     }
+  }
+
+  // Test helpers and subscription management
+  public addSubscribedToken(token: number) {
+    this.subscribedTokens.add(token);
+  }
+
+  public removeSubscribedToken(token: number) {
+    this.subscribedTokens.delete(token);
+  }
+
+  public clearSubscribedTokens() {
+    this.subscribedTokens.clear();
+  }
+
+  // Record a subscribe attempt timestamp; used internally and by tests to simulate bursts
+  public recordSubscribeAttempt() {
+    const now = Date.now();
+    this.recentSubscribeTimestamps.push(now);
+    // prune old timestamps outside the window
+    const cutoff = now - this.subscribeWindowMs;
+    this.recentSubscribeTimestamps = this.recentSubscribeTimestamps.filter(t => t >= cutoff);
+    if (this.recentSubscribeTimestamps.length > this.maxSubscribePerWindow) {
+      // enter backoff
+      this.suspendSubscribesUntil = Date.now() + this.subscribeBackoffMs;
+      try {
+        logger.warn({ message: 'Subscribe rate limit exceeded; suspending subscriptions', backoffMs: this.subscribeBackoffMs });
+      } catch (e) {
+        // fallback to string message
+        try { logger.warn(`Subscribe rate limit exceeded; suspending subscriptions for ${this.subscribeBackoffMs} ms`); } catch (er) {}
+      }
+    }
+  }
+
+  // Returns whether subscribe sending is currently suspended due to rate-limiting
+  public isSubscribeSuspended(): boolean {
+    return !!(this.suspendSubscribesUntil && Date.now() < this.suspendSubscribesUntil);
+  }
+
+  // Allow tests to configure rate-limit behavior
+  public setRateLimitOptions(options: { windowMs?: number; maxPerWindow?: number; backoffMs?: number }) {
+    if (typeof options.windowMs === 'number') this.subscribeWindowMs = Math.max(1, options.windowMs);
+    if (typeof options.maxPerWindow === 'number') this.maxSubscribePerWindow = Math.max(1, options.maxPerWindow);
+    if (typeof options.backoffMs === 'number') this.subscribeBackoffMs = Math.max(0, options.backoffMs);
   }
 
   // Test helper to set subscribed tokens without sending over the wire.

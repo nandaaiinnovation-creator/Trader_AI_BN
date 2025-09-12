@@ -13,6 +13,11 @@ import { gracefulShutdown } from './utils/helpers';
 
 const app = express();
 app.use(express.json());
+
+// Healthcheck endpoint used by Docker / orchestration and CI smoke tests
+app.get('/health', (_req: Request, res: Response) => {
+  res.json({ status: 'ok', uptime: process.uptime() });
+});
 app.use('/api', api);
 
 const server = http.createServer(app);
