@@ -1,0 +1,12 @@
+{
+  "name": "banknifty-signals",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "prepare": "husky install",
+    "check-no-artifacts": "bash .husky/check-no-artifacts.sh"
+  },
+  "devDependencies": {
+    "husky": "^8.0.0"
+  }
+}
