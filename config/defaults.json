@@ -1,0 +1,18 @@
+{
+  "adrPdrBreakoutRule": {
+    "adr_window": 14,
+    "pdr_lookback": 1,
+    "breakout_threshold_pct": 0.25,
+    "volume_multiplier": 1.5,
+    "false_breakout_filter_seconds": 120
+  },
+  "bollingerSqueezeRule": {
+    "band_length": 20,
+    "sigma": 2,
+    "squeeze_bandwidth_threshold_pct": 10,
+    "breakout_volume_multiplier": 1.5
+  },
+  "meta": {
+    "defaults_note": "These are safe example defaults. Tune per strategy and validate in backtests before using live. Values are illustrative."
+  }
+}
