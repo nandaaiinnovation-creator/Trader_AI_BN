@@ -122,6 +122,13 @@ Keep `STATUS.md` as the single source of truth for milestone readiness; update i
 
 ## 10. Milestone Policy
 
+## Base Infrastructure progress (in-progress)
+
+- A minimal `docker-compose.yml` has been added to bring up `postgres:14`, `redis:6`, and the `backend` service for local smoke tests.
+- A lightweight `/health` endpoint was added to the backend (`backend/src/index.ts`) to support healthchecks used by CI and orchestration.
+
+These are intentionally small, low-risk changes to unblock integration and deployment work (migrations and seeding are next).
+
 - Each stage in Section 4 ("Build Stages & Milestones") must be validated before any branch is pushed.
 - Validation requires:
   - ✅ Code + tests completed locally
