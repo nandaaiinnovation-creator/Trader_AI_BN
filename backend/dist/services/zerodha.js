@@ -35,7 +35,10 @@ class ZerodhaService extends events_1.EventEmitter {
         };
         this.lastMessageTime = Date.now();
         this.tokenToSymbolMap = new Map();
-        this.loadCredentials();
+        // Don't auto-load credentials during Jest tests to avoid requiring DB/data source initialization
+        if (process.env.NODE_ENV !== 'test') {
+            this.loadCredentials();
+        }
     }
     async loadCredentials() {
         try {
@@ -69,24 +72,49 @@ class ZerodhaService extends events_1.EventEmitter {
             });
             this.credentials.accessToken = response.data.data.access_token;
             await this.saveCredentials();
-            await this.connect();
+            // Only connect automatically if WS is enabled
+            if (ZerodhaService.ENABLE_WS) {
+                await this.connect();
+            }
+            else {
+                logger_1.logger.info('Zerodha WebSocket auto-connect disabled by environment; skipping connect after callback');
+            }
         }
         catch (err) {
             logger_1.logger.error({ message: 'Failed to exchange request token', err });
             throw new Error('Failed to authenticate with Zerodha');
         }
     }
-    async connect() {
+    async connect(url) {
         if (!this.credentials?.accessToken) {
             throw new Error('No access token available');
         }
+        // If a URL isn't provided, only attempt connect when WS is enabled.
+        if (!url && !ZerodhaService.ENABLE_WS) {
+            logger_1.logger.info('Zerodha WebSocket disabled by environment; connect() skipped');
+            return;
+        }
         try {
-            this.ws = new ws_1.WebSocket('wss://ws.kite.trade/v3');
-            this.ws.on('open', () => {
-                logger_1.logger.info('Connected to Zerodha WebSocket');
-                this.resetReconnectAttempts();
-                this.startHeartbeat();
-                this.subscribe();
+            const wsUrl = url || process.env.ZERODHA_WS_URL || ZerodhaService.DEFAULT_WS_URL;
+            this.ws = new ws_1.WebSocket(wsUrl);
+            // If caller provided a URL (tests/mocks), return a promise that resolves
+            // when the socket 'open' event fires, making connect deterministic for tests.
+            const openPromise = new Promise((resolve, reject) => {
+                this.ws?.on('open', () => {
+                    logger_1.logger.info('Connected to Zerodha WebSocket');
+                    this.resetReconnectAttempts();
+                    this.startHeartbeat();
+                    this.subscribe();
+                    resolve();
+                });
+                this.ws?.on('error', (err) => {
+                    logger_1.logger.error({ message: 'Zerodha WebSocket error', err });
+                    try {
+                        this.ws?.close();
+                    }
+                    catch (e) { }
+                    reject(err);
+                });
             });
             this.ws.on('message', (data) => {
                 this.handleTick(data);
@@ -95,15 +123,20 @@ class ZerodhaService extends events_1.EventEmitter {
                 logger_1.logger.warn('Zerodha WebSocket closed');
                 this.scheduleReconnect();
             });
-            this.ws.on('error', (err) => {
-                logger_1.logger.error({ message: 'Zerodha WebSocket error', err });
-                this.ws?.close();
-            });
+            return openPromise;
         }
         catch (err) {
             logger_1.logger.error({ message: 'Failed to connect to Zerodha WebSocket', err });
             this.scheduleReconnect();
         }
+    }
+    // Public helper used by tests or external flows to trigger a connection
+    async connectTo(url) {
+        return this.connect(url);
+    }
+    // Public setter to allow tests to inject credentials without DB access
+    setCredentials(creds) {
+        this.credentials = creds;
     }
     handleTick(data) {
         try {
@@ -206,8 +239,24 @@ class ZerodhaService extends events_1.EventEmitter {
     }
     async storeTick(tick) {
         const key = `ticks:${tick.symbol}`;
-        await helpers_1.redisClient.set(key, JSON.stringify(tick));
-        await helpers_1.redisClient.expire(key, 300); // 5 minute TTL
+        try {
+            // Guard Redis usage for tests or when client isn't connected
+            // @redis/client exposes `isOpen` to detect connection state
+            // If Redis is not available, skip caching silently
+            // (rules engine still receives ticks via event emit)
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            if (helpers_1.redisClient && helpers_1.redisClient.isOpen) {
+                await helpers_1.redisClient.set(key, JSON.stringify(tick));
+                await helpers_1.redisClient.expire(key, 300); // 5 minute TTL
+            }
+            else {
+                logger_1.logger.debug('Redis client not open; skipping tick cache');
+            }
+        }
+        catch (err) {
+            logger_1.logger.warn({ message: 'Failed to store tick in Redis; skipping', err });
+        }
     }
     startHeartbeat() {
         this.heartbeatTimer = setInterval(() => {
@@ -345,20 +394,89 @@ class ZerodhaService extends events_1.EventEmitter {
         // Implement checksum generation as per Zerodha docs
         return '';
     }
+    // Synchronous convenience cleanup kept for callers that don't need to await close
     cleanup() {
-        if (this.ws) {
-            this.ws.close();
-            this.ws = null;
-        }
+        void this.cleanupAsync().catch((err) => {
+            logger_1.logger.warn({ message: 'cleanup() encountered error', err });
+        });
+    }
+    // Proper async cleanup that ensures timers are cleared, listeners removed,
+    // and the WebSocket is closed and awaited. Tests should call this.
+    async cleanupAsync() {
+        // Clear heartbeat timer
         if (this.heartbeatTimer) {
             clearInterval(this.heartbeatTimer);
             this.heartbeatTimer = null;
         }
+        // Clear reconnect timer
         if (this.reconnectTimer) {
             clearTimeout(this.reconnectTimer);
             this.reconnectTimer = null;
         }
+        // Remove subscribed tokens to avoid accidental sends
+        this.subscribedTokens.clear();
+        // Close websocket and await close event
+        if (this.ws) {
+            try {
+                await new Promise((resolve) => {
+                    // Remove message listeners to avoid re-entrancy while closing
+                    try {
+                        this.ws?.removeAllListeners('message');
+                    }
+                    catch (e) { }
+                    try {
+                        this.ws?.removeAllListeners('open');
+                    }
+                    catch (e) { }
+                    try {
+                        this.ws?.removeAllListeners('error');
+                    }
+                    catch (e) { }
+                    try {
+                        this.ws?.removeAllListeners('close');
+                    }
+                    catch (e) { }
+                    // If already closed, resolve immediately
+                    if (this.ws?.readyState !== ws_1.WebSocket.OPEN && this.ws?.readyState !== ws_1.WebSocket.CONNECTING) {
+                        try {
+                            this.ws?.terminate();
+                        }
+                        catch (e) { }
+                        this.ws = null;
+                        return resolve();
+                    }
+                    this.ws?.once('close', () => {
+                        this.ws = null;
+                        resolve();
+                    });
+                    try {
+                        this.ws?.close();
+                    }
+                    catch (e) {
+                        try {
+                            this.ws?.terminate();
+                        }
+                        catch (er) { }
+                        this.ws = null;
+                        resolve();
+                    }
+                });
+            }
+            catch (err) {
+                logger_1.logger.warn({ message: 'Error while closing Zerodha WebSocket in cleanupAsync', err });
+                try {
+                    this.ws?.terminate();
+                }
+                catch (e) { }
+                this.ws = null;
+            }
+        }
     }
 }
 exports.ZerodhaService = ZerodhaService;
+// Allow overriding the Kite WS URL via env for testing/mocks
+ZerodhaService.DEFAULT_WS_URL = process.env.ZERODHA_WS_URL || 'wss://ws.kite.trade/v3';
+// Control whether the service should open a real WebSocket connection.
+// Defaults to disabled in test/CI to avoid opening live connections.
+ZerodhaService.ENABLE_WS = (process.env.ZERODHA_ENABLE_WS === 'true') || (process.env.NODE_ENV !== 'test');
 exports.zerodhaService = new ZerodhaService();
