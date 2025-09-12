@@ -1,0 +1,688 @@
+﻿infra-validate	Set up job	∩╗┐2025-09-12T19:45:21.3558375Z Current runner version: '2.328.0'
+infra-validate	Set up job	2025-09-12T19:45:21.3582958Z ##[group]Runner Image Provisioner
+infra-validate	Set up job	2025-09-12T19:45:21.3583786Z Hosted Compute Agent
+infra-validate	Set up job	2025-09-12T19:45:21.3584336Z Version: 20250829.383
+infra-validate	Set up job	2025-09-12T19:45:21.3584898Z Commit: 27cb235aab5b0e52e153a26cd86b4742e89dac5d
+infra-validate	Set up job	2025-09-12T19:45:21.3585683Z Build Date: 2025-08-29T13:48:48Z
+infra-validate	Set up job	2025-09-12T19:45:21.3586255Z ##[endgroup]
+infra-validate	Set up job	2025-09-12T19:45:21.3586808Z ##[group]Operating System
+infra-validate	Set up job	2025-09-12T19:45:21.3587453Z Ubuntu
+infra-validate	Set up job	2025-09-12T19:45:21.3587906Z 24.04.3
+infra-validate	Set up job	2025-09-12T19:45:21.3588367Z LTS
+infra-validate	Set up job	2025-09-12T19:45:21.3588853Z ##[endgroup]
+infra-validate	Set up job	2025-09-12T19:45:21.3589348Z ##[group]Runner Image
+infra-validate	Set up job	2025-09-12T19:45:21.3589889Z Image: ubuntu-24.04
+infra-validate	Set up job	2025-09-12T19:45:21.3590450Z Version: 20250907.24.1
+infra-validate	Set up job	2025-09-12T19:45:21.3591419Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20250907.24/images/ubuntu/Ubuntu2404-Readme.md
+infra-validate	Set up job	2025-09-12T19:45:21.3593102Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20250907.24
+infra-validate	Set up job	2025-09-12T19:45:21.3594353Z ##[endgroup]
+infra-validate	Set up job	2025-09-12T19:45:21.3595474Z ##[group]GITHUB_TOKEN Permissions
+infra-validate	Set up job	2025-09-12T19:45:21.3597299Z Contents: read
+infra-validate	Set up job	2025-09-12T19:45:21.3597828Z Metadata: read
+infra-validate	Set up job	2025-09-12T19:45:21.3598399Z Packages: read
+infra-validate	Set up job	2025-09-12T19:45:21.3598917Z ##[endgroup]
+infra-validate	Set up job	2025-09-12T19:45:21.3600911Z Secret source: Actions
+infra-validate	Set up job	2025-09-12T19:45:21.3601700Z Prepare workflow directory
+infra-validate	Set up job	2025-09-12T19:45:21.4022800Z Prepare all required actions
+infra-validate	Set up job	2025-09-12T19:45:21.4062171Z Getting action download info
+infra-validate	Set up job	2025-09-12T19:45:21.8781268Z Download action repository 'actions/checkout@v4' (SHA:08eba0b27e820071cde6df949e0beb9ba4906955)
+infra-validate	Set up job	2025-09-12T19:45:22.0612625Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+infra-validate	Set up job	2025-09-12T19:45:22.2341049Z Complete job name: infra-validate
+infra-validate	Initialize containers	∩╗┐2025-09-12T19:45:22.2820783Z ##[group]Checking docker version
+infra-validate	Initialize containers	2025-09-12T19:45:22.2833882Z ##[command]/usr/bin/docker version --format '{{.Server.APIVersion}}'
+infra-validate	Initialize containers	2025-09-12T19:45:22.3805014Z '1.48'
+infra-validate	Initialize containers	2025-09-12T19:45:22.3816731Z Docker daemon API version: '1.48'
+infra-validate	Initialize containers	2025-09-12T19:45:22.3817569Z ##[command]/usr/bin/docker version --format '{{.Client.APIVersion}}'
+infra-validate	Initialize containers	2025-09-12T19:45:22.3978885Z '1.48'
+infra-validate	Initialize containers	2025-09-12T19:45:22.3992648Z Docker client API version: '1.48'
+infra-validate	Initialize containers	2025-09-12T19:45:22.3997668Z ##[endgroup]
+infra-validate	Initialize containers	2025-09-12T19:45:22.4001224Z ##[group]Clean up resources from previous jobs
+infra-validate	Initialize containers	2025-09-12T19:45:22.4007300Z ##[command]/usr/bin/docker ps --all --quiet --no-trunc --filter "label=a99715"
+infra-validate	Initialize containers	2025-09-12T19:45:22.4145036Z ##[command]/usr/bin/docker network prune --force --filter "label=a99715"
+infra-validate	Initialize containers	2025-09-12T19:45:22.4288942Z ##[endgroup]
+infra-validate	Initialize containers	2025-09-12T19:45:22.4289593Z ##[group]Create local container network
+infra-validate	Initialize containers	2025-09-12T19:45:22.4300770Z ##[command]/usr/bin/docker network create --label a99715 github_network_07737735ff914241965820dede7a064e
+infra-validate	Initialize containers	2025-09-12T19:45:22.4877061Z 5ae163dcb21b91ecf982e3ee35470762ededc66e8907635206d356614ccfcaf1
+infra-validate	Initialize containers	2025-09-12T19:45:22.4898179Z ##[endgroup]
+infra-validate	Initialize containers	2025-09-12T19:45:22.4924737Z ##[group]Starting postgres service container
+infra-validate	Initialize containers	2025-09-12T19:45:22.4947792Z ##[command]/usr/bin/docker pull postgres:14
+infra-validate	Initialize containers	2025-09-12T19:45:23.5401178Z 14: Pulling from library/postgres
+infra-validate	Initialize containers	2025-09-12T19:45:23.7952820Z ce1261c6d567: Pulling fs layer
+infra-validate	Initialize containers	2025-09-12T19:45:23.7953687Z 9595d6df1702: Pulling fs layer
+infra-validate	Initialize containers	2025-09-12T19:45:23.7954230Z f61679df62ff: Pulling fs layer
+infra-validate	Initialize containers	2025-09-12T19:45:23.7954812Z b6b19fc5a897: Pulling fs layer
+infra-validate	Initialize containers	2025-09-12T19:45:23.7955351Z 6063eca40075: Pulling fs layer
+infra-validate	Initialize containers	2025-09-12T19:45:23.7955924Z ea9be19a833d: Pulling fs layer
+infra-validate	Initialize containers	2025-09-12T19:45:23.7956478Z 09099ebea9b7: Pulling fs layer
+infra-validate	Initialize containers	2025-09-12T19:45:23.7957050Z c7cb4c22443b: Pulling fs layer
+infra-validate	Initialize containers	2025-09-12T19:45:23.7957577Z 7a5f93555331: Pulling fs layer
+infra-validate	Initialize containers	2025-09-12T19:45:23.7958049Z 771dc539e4b4: Pulling fs layer
+infra-validate	Initialize containers	2025-09-12T19:45:23.7958602Z 3a1f45b72d96: Pulling fs layer
+infra-validate	Initialize containers	2025-09-12T19:45:23.7959046Z 14d8c3633343: Pulling fs layer
+infra-validate	Initialize containers	2025-09-12T19:45:23.7959497Z 359af5c70b5d: Pulling fs layer
+infra-validate	Initialize containers	2025-09-12T19:45:23.7959851Z c992fcc7ef58: Pulling fs layer
+infra-validate	Initialize containers	2025-09-12T19:45:23.7960346Z 7a5f93555331: Waiting
+infra-validate	Initialize containers	2025-09-12T19:45:23.7960980Z b6b19fc5a897: Waiting
+infra-validate	Initialize containers	2025-09-12T19:45:23.7961294Z 771dc539e4b4: Waiting
+infra-validate	Initialize containers	2025-09-12T19:45:23.7961587Z 6063eca40075: Waiting
+infra-validate	Initialize containers	2025-09-12T19:45:23.7961881Z 3a1f45b72d96: Waiting
+infra-validate	Initialize containers	2025-09-12T19:45:23.7962177Z ea9be19a833d: Waiting
+infra-validate	Initialize containers	2025-09-12T19:45:23.7962718Z 09099ebea9b7: Waiting
+infra-validate	Initialize containers	2025-09-12T19:45:23.7963007Z c7cb4c22443b: Waiting
+infra-validate	Initialize containers	2025-09-12T19:45:23.7963268Z 14d8c3633343: Waiting
+infra-validate	Initialize containers	2025-09-12T19:45:23.7963501Z c992fcc7ef58: Waiting
+infra-validate	Initialize containers	2025-09-12T19:45:23.7963789Z 359af5c70b5d: Waiting
+infra-validate	Initialize containers	2025-09-12T19:45:24.1073168Z 9595d6df1702: Verifying Checksum
+infra-validate	Initialize containers	2025-09-12T19:45:24.1074226Z 9595d6df1702: Download complete
+infra-validate	Initialize containers	2025-09-12T19:45:24.1689514Z f61679df62ff: Verifying Checksum
+infra-validate	Initialize containers	2025-09-12T19:45:24.1690426Z f61679df62ff: Download complete
+infra-validate	Initialize containers	2025-09-12T19:45:24.3793373Z b6b19fc5a897: Verifying Checksum
+infra-validate	Initialize containers	2025-09-12T19:45:24.3794194Z b6b19fc5a897: Download complete
+infra-validate	Initialize containers	2025-09-12T19:45:24.6036011Z 6063eca40075: Verifying Checksum
+infra-validate	Initialize containers	2025-09-12T19:45:24.6036735Z 6063eca40075: Download complete
+infra-validate	Initialize containers	2025-09-12T19:45:24.7173257Z ea9be19a833d: Verifying Checksum
+infra-validate	Initialize containers	2025-09-12T19:45:24.7174120Z ea9be19a833d: Download complete
+infra-validate	Initialize containers	2025-09-12T19:45:24.7671916Z ce1261c6d567: Verifying Checksum
+infra-validate	Initialize containers	2025-09-12T19:45:24.7673234Z ce1261c6d567: Download complete
+infra-validate	Initialize containers	2025-09-12T19:45:24.8957940Z 09099ebea9b7: Verifying Checksum
+infra-validate	Initialize containers	2025-09-12T19:45:24.8959240Z 09099ebea9b7: Download complete
+infra-validate	Initialize containers	2025-09-12T19:45:24.9727768Z c7cb4c22443b: Verifying Checksum
+infra-validate	Initialize containers	2025-09-12T19:45:24.9728664Z c7cb4c22443b: Download complete
+infra-validate	Initialize containers	2025-09-12T19:45:25.1457873Z 771dc539e4b4: Verifying Checksum
+infra-validate	Initialize containers	2025-09-12T19:45:25.1460226Z 771dc539e4b4: Download complete
+infra-validate	Initialize containers	2025-09-12T19:45:25.3610980Z 3a1f45b72d96: Verifying Checksum
+infra-validate	Initialize containers	2025-09-12T19:45:25.3611817Z 3a1f45b72d96: Download complete
+infra-validate	Initialize containers	2025-09-12T19:45:25.4203866Z 14d8c3633343: Verifying Checksum
+infra-validate	Initialize containers	2025-09-12T19:45:25.4206146Z 14d8c3633343: Download complete
+infra-validate	Initialize containers	2025-09-12T19:45:25.6169329Z 359af5c70b5d: Verifying Checksum
+infra-validate	Initialize containers	2025-09-12T19:45:25.6169906Z 359af5c70b5d: Download complete
+infra-validate	Initialize containers	2025-09-12T19:45:25.6743255Z c992fcc7ef58: Verifying Checksum
+infra-validate	Initialize containers	2025-09-12T19:45:25.6743936Z c992fcc7ef58: Download complete
+infra-validate	Initialize containers	2025-09-12T19:45:25.7359030Z ce1261c6d567: Pull complete
+infra-validate	Initialize containers	2025-09-12T19:45:25.8142188Z 9595d6df1702: Pull complete
+infra-validate	Initialize containers	2025-09-12T19:45:25.9832796Z f61679df62ff: Pull complete
+infra-validate	Initialize containers	2025-09-12T19:45:26.0256200Z b6b19fc5a897: Pull complete
+infra-validate	Initialize containers	2025-09-12T19:45:26.3391213Z 6063eca40075: Pull complete
+infra-validate	Initialize containers	2025-09-12T19:45:26.4223182Z ea9be19a833d: Pull complete
+infra-validate	Initialize containers	2025-09-12T19:45:26.4331607Z 09099ebea9b7: Pull complete
+infra-validate	Initialize containers	2025-09-12T19:45:26.4442529Z c7cb4c22443b: Pull complete
+infra-validate	Initialize containers	2025-09-12T19:45:27.4976136Z 7a5f93555331: Verifying Checksum
+infra-validate	Initialize containers	2025-09-12T19:45:27.4976584Z 7a5f93555331: Download complete
+infra-validate	Initialize containers	2025-09-12T19:45:30.3575066Z 7a5f93555331: Pull complete
+infra-validate	Initialize containers	2025-09-12T19:45:30.3727813Z 771dc539e4b4: Pull complete
+infra-validate	Initialize containers	2025-09-12T19:45:30.3882071Z 3a1f45b72d96: Pull complete
+infra-validate	Initialize containers	2025-09-12T19:45:30.4007908Z 14d8c3633343: Pull complete
+infra-validate	Initialize containers	2025-09-12T19:45:30.4108160Z 359af5c70b5d: Pull complete
+infra-validate	Initialize containers	2025-09-12T19:45:30.4236983Z c992fcc7ef58: Pull complete
+infra-validate	Initialize containers	2025-09-12T19:45:30.4275554Z Digest: sha256:e84397672fce21223933cd4f9b09fdea0c1c72daa834c57a613121c927b2ba61
+infra-validate	Initialize containers	2025-09-12T19:45:30.4289095Z Status: Downloaded newer image for postgres:14
+infra-validate	Initialize containers	2025-09-12T19:45:30.4302254Z docker.io/library/postgres:14
+infra-validate	Initialize containers	2025-09-12T19:45:30.4365061Z ##[command]/usr/bin/docker create --name 72c92abf46a142edb0aa1499ac9154ce_postgres14_c84e2b --label a99715 --network github_network_07737735ff914241965820dede7a064e --network-alias postgres -p 5432:5432 --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 5 -e "POSTGRES_USER=postgres" -e "POSTGRES_PASSWORD=postgres" -e "POSTGRES_DB=banknifty" -e GITHUB_ACTIONS=true -e CI=true postgres:14
+infra-validate	Initialize containers	2025-09-12T19:45:30.4628900Z 254bf03db272f5d46b4ae6ae9bf41f62347ddab3c436a2b97c60c73715c5ef16
+infra-validate	Initialize containers	2025-09-12T19:45:30.4655463Z ##[command]/usr/bin/docker start 254bf03db272f5d46b4ae6ae9bf41f62347ddab3c436a2b97c60c73715c5ef16
+infra-validate	Initialize containers	2025-09-12T19:45:30.6748132Z 254bf03db272f5d46b4ae6ae9bf41f62347ddab3c436a2b97c60c73715c5ef16
+infra-validate	Initialize containers	2025-09-12T19:45:30.6769489Z ##[command]/usr/bin/docker ps --all --filter id=254bf03db272f5d46b4ae6ae9bf41f62347ddab3c436a2b97c60c73715c5ef16 --filter status=running --no-trunc --format "{{.ID}} {{.Status}}"
+infra-validate	Initialize containers	2025-09-12T19:45:30.6897645Z 254bf03db272f5d46b4ae6ae9bf41f62347ddab3c436a2b97c60c73715c5ef16 Up Less than a second (health: starting)
+infra-validate	Initialize containers	2025-09-12T19:45:30.6922921Z ##[command]/usr/bin/docker port 254bf03db272f5d46b4ae6ae9bf41f62347ddab3c436a2b97c60c73715c5ef16
+infra-validate	Initialize containers	2025-09-12T19:45:30.7146846Z 5432/tcp -> 0.0.0.0:5432
+infra-validate	Initialize containers	2025-09-12T19:45:30.7147648Z 5432/tcp -> [::]:5432
+infra-validate	Initialize containers	2025-09-12T19:45:30.7205115Z ##[endgroup]
+infra-validate	Initialize containers	2025-09-12T19:45:30.7206883Z ##[group]Starting redis service container
+infra-validate	Initialize containers	2025-09-12T19:45:30.7208359Z ##[command]/usr/bin/docker pull redis:6
+infra-validate	Initialize containers	2025-09-12T19:45:31.7036362Z 6: Pulling from library/redis
+infra-validate	Initialize containers	2025-09-12T19:45:31.9490218Z d107e437f729: Pulling fs layer
+infra-validate	Initialize containers	2025-09-12T19:45:31.9490754Z 0aeb9a75acc4: Pulling fs layer
+infra-validate	Initialize containers	2025-09-12T19:45:31.9491228Z 516482b9b183: Pulling fs layer
+infra-validate	Initialize containers	2025-09-12T19:45:31.9491709Z 87935ad95044: Pulling fs layer
+infra-validate	Initialize containers	2025-09-12T19:45:31.9492255Z bbda1a6dc2ac: Pulling fs layer
+infra-validate	Initialize containers	2025-09-12T19:45:31.9492973Z 315f596d1929: Pulling fs layer
+infra-validate	Initialize containers	2025-09-12T19:45:31.9493425Z 4f4fb700ef54: Pulling fs layer
+infra-validate	Initialize containers	2025-09-12T19:45:31.9493920Z 73192309b99d: Pulling fs layer
+infra-validate	Initialize containers	2025-09-12T19:45:31.9494510Z bbda1a6dc2ac: Waiting
+infra-validate	Initialize containers	2025-09-12T19:45:31.9494966Z 315f596d1929: Waiting
+infra-validate	Initialize containers	2025-09-12T19:45:31.9495384Z 4f4fb700ef54: Waiting
+infra-validate	Initialize containers	2025-09-12T19:45:31.9495727Z 73192309b99d: Waiting
+infra-validate	Initialize containers	2025-09-12T19:45:31.9495961Z 87935ad95044: Waiting
+infra-validate	Initialize containers	2025-09-12T19:45:32.2286994Z 516482b9b183: Verifying Checksum
+infra-validate	Initialize containers	2025-09-12T19:45:32.2287731Z 516482b9b183: Download complete
+infra-validate	Initialize containers	2025-09-12T19:45:32.2325688Z 0aeb9a75acc4: Download complete
+infra-validate	Initialize containers	2025-09-12T19:45:32.5887024Z 87935ad95044: Verifying Checksum
+infra-validate	Initialize containers	2025-09-12T19:45:32.5888486Z 87935ad95044: Download complete
+infra-validate	Initialize containers	2025-09-12T19:45:32.6094166Z bbda1a6dc2ac: Verifying Checksum
+infra-validate	Initialize containers	2025-09-12T19:45:32.6095023Z bbda1a6dc2ac: Download complete
+infra-validate	Initialize containers	2025-09-12T19:45:32.8686666Z d107e437f729: Verifying Checksum
+infra-validate	Initialize containers	2025-09-12T19:45:32.8687185Z d107e437f729: Download complete
+infra-validate	Initialize containers	2025-09-12T19:45:32.8735155Z 315f596d1929: Verifying Checksum
+infra-validate	Initialize containers	2025-09-12T19:45:32.8741068Z 315f596d1929: Download complete
+infra-validate	Initialize containers	2025-09-12T19:45:32.8774298Z 4f4fb700ef54: Verifying Checksum
+infra-validate	Initialize containers	2025-09-12T19:45:32.8774710Z 4f4fb700ef54: Download complete
+infra-validate	Initialize containers	2025-09-12T19:45:33.1445204Z 73192309b99d: Verifying Checksum
+infra-validate	Initialize containers	2025-09-12T19:45:33.1445715Z 73192309b99d: Download complete
+infra-validate	Initialize containers	2025-09-12T19:45:33.9063876Z d107e437f729: Pull complete
+infra-validate	Initialize containers	2025-09-12T19:45:33.9737490Z 0aeb9a75acc4: Pull complete
+infra-validate	Initialize containers	2025-09-12T19:45:33.9897750Z 516482b9b183: Pull complete
+infra-validate	Initialize containers	2025-09-12T19:45:34.0281831Z 87935ad95044: Pull complete
+infra-validate	Initialize containers	2025-09-12T19:45:34.1789075Z bbda1a6dc2ac: Pull complete
+infra-validate	Initialize containers	2025-09-12T19:45:34.1865510Z 315f596d1929: Pull complete
+infra-validate	Initialize containers	2025-09-12T19:45:34.1951604Z 4f4fb700ef54: Pull complete
+infra-validate	Initialize containers	2025-09-12T19:45:34.2032977Z 73192309b99d: Pull complete
+infra-validate	Initialize containers	2025-09-12T19:45:34.2076157Z Digest: sha256:26675183e3dca77396cb5a798bec829f77e0b342a4d020fd6d03b3729cda5e6a
+infra-validate	Initialize containers	2025-09-12T19:45:34.2086229Z Status: Downloaded newer image for redis:6
+infra-validate	Initialize containers	2025-09-12T19:45:34.2107728Z docker.io/library/redis:6
+infra-validate	Initialize containers	2025-09-12T19:45:34.2124591Z ##[command]/usr/bin/docker create --name b28d0a8259a14c49a1aa2855e09b23c3_redis6_de06b9 --label a99715 --network github_network_07737735ff914241965820dede7a064e --network-alias redis -p 6379:6379 --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 5s --health-retries 5 -e GITHUB_ACTIONS=true -e CI=true redis:6
+infra-validate	Initialize containers	2025-09-12T19:45:34.2338080Z 4944bb789d2dc7aa902ff598f14e4302cab98a3378b818ec89dc03f0e03b72b6
+infra-validate	Initialize containers	2025-09-12T19:45:34.2354047Z ##[command]/usr/bin/docker start 4944bb789d2dc7aa902ff598f14e4302cab98a3378b818ec89dc03f0e03b72b6
+infra-validate	Initialize containers	2025-09-12T19:45:34.3703048Z 4944bb789d2dc7aa902ff598f14e4302cab98a3378b818ec89dc03f0e03b72b6
+infra-validate	Initialize containers	2025-09-12T19:45:34.3719539Z ##[command]/usr/bin/docker ps --all --filter id=4944bb789d2dc7aa902ff598f14e4302cab98a3378b818ec89dc03f0e03b72b6 --filter status=running --no-trunc --format "{{.ID}} {{.Status}}"
+infra-validate	Initialize containers	2025-09-12T19:45:34.3850472Z 4944bb789d2dc7aa902ff598f14e4302cab98a3378b818ec89dc03f0e03b72b6 Up Less than a second (health: starting)
+infra-validate	Initialize containers	2025-09-12T19:45:34.3864116Z ##[command]/usr/bin/docker port 4944bb789d2dc7aa902ff598f14e4302cab98a3378b818ec89dc03f0e03b72b6
+infra-validate	Initialize containers	2025-09-12T19:45:34.3987011Z 6379/tcp -> 0.0.0.0:6379
+infra-validate	Initialize containers	2025-09-12T19:45:34.3987672Z 6379/tcp -> [::]:6379
+infra-validate	Initialize containers	2025-09-12T19:45:34.4001141Z ##[endgroup]
+infra-validate	Initialize containers	2025-09-12T19:45:34.4010695Z ##[group]Waiting for all services to be ready
+infra-validate	Initialize containers	2025-09-12T19:45:34.4024356Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" 254bf03db272f5d46b4ae6ae9bf41f62347ddab3c436a2b97c60c73715c5ef16
+infra-validate	Initialize containers	2025-09-12T19:45:34.4140212Z starting
+infra-validate	Initialize containers	2025-09-12T19:45:34.4160365Z postgres service is starting, waiting 2 seconds before checking again.
+infra-validate	Initialize containers	2025-09-12T19:45:36.4165578Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" 254bf03db272f5d46b4ae6ae9bf41f62347ddab3c436a2b97c60c73715c5ef16
+infra-validate	Initialize containers	2025-09-12T19:45:36.4288881Z healthy
+infra-validate	Initialize containers	2025-09-12T19:45:36.4306334Z postgres service is healthy.
+infra-validate	Initialize containers	2025-09-12T19:45:36.4307236Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" 4944bb789d2dc7aa902ff598f14e4302cab98a3378b818ec89dc03f0e03b72b6
+infra-validate	Initialize containers	2025-09-12T19:45:36.4424334Z starting
+infra-validate	Initialize containers	2025-09-12T19:45:36.4437878Z redis service is starting, waiting 2 seconds before checking again.
+infra-validate	Initialize containers	2025-09-12T19:45:38.4436840Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" 4944bb789d2dc7aa902ff598f14e4302cab98a3378b818ec89dc03f0e03b72b6
+infra-validate	Initialize containers	2025-09-12T19:45:38.4562847Z starting
+infra-validate	Initialize containers	2025-09-12T19:45:38.4576249Z redis service is starting, waiting 3 seconds before checking again.
+infra-validate	Initialize containers	2025-09-12T19:45:42.1507187Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" 4944bb789d2dc7aa902ff598f14e4302cab98a3378b818ec89dc03f0e03b72b6
+infra-validate	Initialize containers	2025-09-12T19:45:42.1627799Z healthy
+infra-validate	Initialize containers	2025-09-12T19:45:42.1641469Z redis service is healthy.
+infra-validate	Initialize containers	2025-09-12T19:45:42.1642188Z ##[endgroup]
+infra-validate	Run actions/checkout@v4	∩╗┐2025-09-12T19:45:42.1962905Z ##[group]Run actions/checkout@v4
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.1963488Z with:
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.1963730Z   repository: nandaaiinnovation-creator/Trader_AI_BN
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.1964157Z   token: ***
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.1964331Z   ssh-strict: true
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.1964511Z   ssh-user: git
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.1964693Z   persist-credentials: true
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.1964903Z   clean: true
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.1965085Z   sparse-checkout-cone-mode: true
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.1965331Z   fetch-depth: 1
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.1965500Z   fetch-tags: false
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.1965685Z   show-progress: true
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.1965862Z   lfs: false
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.1966022Z   submodules: false
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.1966202Z   set-safe-directory: true
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.1966577Z ##[endgroup]
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3023146Z Syncing repository: nandaaiinnovation-creator/Trader_AI_BN
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3024487Z ##[group]Getting Git version info
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3024858Z Working directory is '/home/runner/work/Trader_AI_BN/Trader_AI_BN'
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3025475Z [command]/usr/bin/git version
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3103866Z git version 2.51.0
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3129891Z ##[endgroup]
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3143814Z Temporarily overriding HOME='/home/runner/work/_temp/881de0fc-bf3d-4682-b7e7-52c630d70de5' before making global git config changes
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3144854Z Adding repository directory to the temporary git global config as a safe directory
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3148857Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Trader_AI_BN/Trader_AI_BN
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3186274Z Deleting the contents of '/home/runner/work/Trader_AI_BN/Trader_AI_BN'
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3190035Z ##[group]Initializing the repository
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3194727Z [command]/usr/bin/git init /home/runner/work/Trader_AI_BN/Trader_AI_BN
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3293695Z hint: Using 'master' as the name for the initial branch. This default branch name
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3294455Z hint: is subject to change. To configure the initial branch name to use in all
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3295812Z hint: of your new repositories, which will suppress this warning, call:
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3296599Z hint:
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3297146Z hint: 	git config --global init.defaultBranch <name>
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3297785Z hint:
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3298450Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3299654Z hint: 'development'. The just-created branch can be renamed via this command:
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3300566Z hint:
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3300945Z hint: 	git branch -m <name>
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3301361Z hint:
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3301755Z hint: Disable this message with "git config set advice.defaultBranchName false"
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3302680Z Initialized empty Git repository in /home/runner/work/Trader_AI_BN/Trader_AI_BN/.git/
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3311804Z [command]/usr/bin/git remote add origin https://github.com/nandaaiinnovation-creator/Trader_AI_BN
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3347295Z ##[endgroup]
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3347718Z ##[group]Disabling automatic garbage collection
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3351534Z [command]/usr/bin/git config --local gc.auto 0
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3378895Z ##[endgroup]
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3379267Z ##[group]Setting up auth
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3386547Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3417062Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3730622Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3761131Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.3978483Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.4020679Z ##[endgroup]
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.4021305Z ##[group]Fetching the repository
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.4029826Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +ed623126d42fb81996c4f685cbc4bbc49608ecb8:refs/remotes/pull/16/merge
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.8825725Z From https://github.com/nandaaiinnovation-creator/Trader_AI_BN
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.8826466Z  * [new ref]         ed623126d42fb81996c4f685cbc4bbc49608ecb8 -> pull/16/merge
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.8856295Z ##[endgroup]
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.8856710Z ##[group]Determining the checkout info
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.8858897Z ##[endgroup]
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.8864301Z [command]/usr/bin/git sparse-checkout disable
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.8902926Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.8929604Z ##[group]Checking out the ref
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.8933471Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/16/merge
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.9071487Z Note: switching to 'refs/remotes/pull/16/merge'.
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.9072093Z 
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.9072890Z You are in 'detached HEAD' state. You can look around, make experimental
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.9074073Z changes and commit them, and you can discard any commits you make in this
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.9074823Z state without impacting any branches by switching back to a branch.
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.9075237Z 
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.9075519Z If you want to create a new branch to retain commits you create, you may
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.9076210Z do so (now or later) by using -c with the switch command. Example:
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.9076855Z 
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.9077137Z   git switch -c <new-branch-name>
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.9077620Z 
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.9077898Z Or undo this operation with:
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.9078342Z 
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.9078562Z   git switch -
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.9078881Z 
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.9079478Z Turn off this advice by setting config variable advice.detachedHead to false
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.9080629Z 
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.9081650Z HEAD is now at ed62312 Merge c11948f8b51c57e14b4af57aeaec3852d8dbb621 into 6ec97b694585ded7eb8f7b928bfcc70c02c72ae7
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.9084255Z ##[endgroup]
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.9116535Z [command]/usr/bin/git log -1 --format=%H
+infra-validate	Run actions/checkout@v4	2025-09-12T19:45:42.9137541Z ed623126d42fb81996c4f685cbc4bbc49608ecb8
+infra-validate	Set up Node.js	∩╗┐2025-09-12T19:45:42.9350080Z ##[group]Run actions/setup-node@v4
+infra-validate	Set up Node.js	2025-09-12T19:45:42.9350341Z with:
+infra-validate	Set up Node.js	2025-09-12T19:45:42.9350501Z   node-version: 18
+infra-validate	Set up Node.js	2025-09-12T19:45:42.9350682Z   always-auth: false
+infra-validate	Set up Node.js	2025-09-12T19:45:42.9350858Z   check-latest: false
+infra-validate	Set up Node.js	2025-09-12T19:45:42.9351162Z   token: ***
+infra-validate	Set up Node.js	2025-09-12T19:45:42.9351329Z ##[endgroup]
+infra-validate	Set up Node.js	2025-09-12T19:45:43.1107098Z Found in cache @ /opt/hostedtoolcache/node/18.20.8/x64
+infra-validate	Set up Node.js	2025-09-12T19:45:43.1113603Z ##[group]Environment details
+infra-validate	Set up Node.js	2025-09-12T19:45:45.2371698Z node: v18.20.8
+infra-validate	Set up Node.js	2025-09-12T19:45:45.2372081Z npm: 10.8.2
+infra-validate	Set up Node.js	2025-09-12T19:45:45.2372644Z yarn: 1.22.22
+infra-validate	Set up Node.js	2025-09-12T19:45:45.2374056Z ##[endgroup]
+infra-validate	Install backend deps	∩╗┐2025-09-12T19:45:45.2476446Z ##[group]Run npm ci
+infra-validate	Install backend deps	2025-09-12T19:45:45.2476695Z [36;1mnpm ci[0m
+infra-validate	Install backend deps	2025-09-12T19:45:45.2602266Z shell: /usr/bin/bash -e {0}
+infra-validate	Install backend deps	2025-09-12T19:45:45.2602799Z ##[endgroup]
+infra-validate	Install backend deps	2025-09-12T19:45:48.6561816Z npm warn EBADENGINE Unsupported engine {
+infra-validate	Install backend deps	2025-09-12T19:45:48.6562873Z npm warn EBADENGINE   package: 'banknifty-signals-backend@1.0.0',
+infra-validate	Install backend deps	2025-09-12T19:45:48.6563473Z npm warn EBADENGINE   required: { node: '18.18.2' },
+infra-validate	Install backend deps	2025-09-12T19:45:48.6564046Z npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+infra-validate	Install backend deps	2025-09-12T19:45:48.6564494Z npm warn EBADENGINE }
+infra-validate	Install backend deps	2025-09-12T19:45:50.2892218Z npm warn deprecated rimraf@2.7.1: Rimraf versions prior to v4 are no longer supported
+infra-validate	Install backend deps	2025-09-12T19:45:50.9131438Z npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+infra-validate	Install backend deps	2025-09-12T19:45:51.0743494Z npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+infra-validate	Install backend deps	2025-09-12T19:45:51.5734652Z npm warn deprecated @types/pino@7.0.5: This is a stub types definition. pino provides its own type definitions, so you do not need this installed.
+infra-validate	Install backend deps	2025-09-12T19:45:51.6093225Z npm warn deprecated @types/socket.io@3.0.2: This is a stub types definition. socket.io provides its own type definitions, so you do not need this installed.
+infra-validate	Install backend deps	2025-09-12T19:45:52.0408584Z npm warn deprecated glob@8.1.0: Glob versions prior to v9 are no longer supported
+infra-validate	Install backend deps	2025-09-12T19:46:00.7995896Z 
+infra-validate	Install backend deps	2025-09-12T19:46:00.7998578Z added 528 packages, and audited 529 packages in 15s
+infra-validate	Install backend deps	2025-09-12T19:46:00.7999107Z 
+infra-validate	Install backend deps	2025-09-12T19:46:00.7999463Z 71 packages are looking for funding
+infra-validate	Install backend deps	2025-09-12T19:46:00.8000004Z   run `npm fund` for details
+infra-validate	Install backend deps	2025-09-12T19:46:00.8009920Z 
+infra-validate	Install backend deps	2025-09-12T19:46:00.8010496Z found 0 vulnerabilities
+infra-validate	Validate defaults	∩╗┐2025-09-12T19:46:00.8298249Z ##[group]Run npm run validate:defaults
+infra-validate	Validate defaults	2025-09-12T19:46:00.8298857Z [36;1mnpm run validate:defaults[0m
+infra-validate	Validate defaults	2025-09-12T19:46:00.8330473Z shell: /usr/bin/bash -e {0}
+infra-validate	Validate defaults	2025-09-12T19:46:00.8330736Z ##[endgroup]
+infra-validate	Validate defaults	2025-09-12T19:46:00.9597354Z 
+infra-validate	Validate defaults	2025-09-12T19:46:00.9598066Z > banknifty-signals-backend@1.0.0 validate:defaults
+infra-validate	Validate defaults	2025-09-12T19:46:00.9598639Z > node ./scripts/validate-defaults.js
+infra-validate	Validate defaults	2025-09-12T19:46:00.9598856Z 
+infra-validate	Validate defaults	2025-09-12T19:46:01.0711623Z config/defaults.json validated successfully.
+infra-validate	Run DB Migrations	∩╗┐2025-09-12T19:46:01.0871688Z ##[group]Run npm run db:migrate
+infra-validate	Run DB Migrations	2025-09-12T19:46:01.0872007Z [36;1mnpm run db:migrate[0m
+infra-validate	Run DB Migrations	2025-09-12T19:46:01.0904380Z shell: /usr/bin/bash -e {0}
+infra-validate	Run DB Migrations	2025-09-12T19:46:01.0904639Z env:
+infra-validate	Run DB Migrations	2025-09-12T19:46:01.0905119Z   DATABASE_URL: ***localhost:5432/banknifty
+infra-validate	Run DB Migrations	2025-09-12T19:46:01.0905425Z ##[endgroup]
+infra-validate	Run DB Migrations	2025-09-12T19:46:01.2180268Z 
+infra-validate	Run DB Migrations	2025-09-12T19:46:01.2181001Z > banknifty-signals-backend@1.0.0 db:migrate
+infra-validate	Run DB Migrations	2025-09-12T19:46:01.2181439Z > node ./scripts/run_migrations.js
+infra-validate	Run DB Migrations	2025-09-12T19:46:01.2181638Z 
+infra-validate	Run DB Migrations	2025-09-12T19:46:01.3205852Z Migrations applied
+infra-validate	Run Seeders	∩╗┐2025-09-12T19:46:01.3384282Z ##[group]Run node ./scripts/run_seeders.js
+infra-validate	Run Seeders	2025-09-12T19:46:01.3384844Z [36;1mnode ./scripts/run_seeders.js[0m
+infra-validate	Run Seeders	2025-09-12T19:46:01.3416015Z shell: /usr/bin/bash -e {0}
+infra-validate	Run Seeders	2025-09-12T19:46:01.3416281Z env:
+infra-validate	Run Seeders	2025-09-12T19:46:01.3416799Z   DATABASE_URL: ***localhost:5432/banknifty
+infra-validate	Run Seeders	2025-09-12T19:46:01.3417096Z ##[endgroup]
+infra-validate	Run Seeders	2025-09-12T19:46:01.4195679Z Seeded default settings
+infra-validate	Run tests	∩╗┐2025-09-12T19:46:01.4303246Z ##[group]Run npm test
+infra-validate	Run tests	2025-09-12T19:46:01.4303517Z [36;1mnpm test[0m
+infra-validate	Run tests	2025-09-12T19:46:01.4333760Z shell: /usr/bin/bash -e {0}
+infra-validate	Run tests	2025-09-12T19:46:01.4334001Z ##[endgroup]
+infra-validate	Run tests	2025-09-12T19:46:01.5726890Z 
+infra-validate	Run tests	2025-09-12T19:46:01.5727454Z > banknifty-signals-backend@1.0.0 test
+infra-validate	Run tests	2025-09-12T19:46:01.5727989Z > jest --coverage
+infra-validate	Run tests	2025-09-12T19:46:01.5728151Z 
+infra-validate	Run tests	2025-09-12T19:46:10.0591262Z PASS tests/integration/zerodha.integration.test.ts (7.715 s)
+infra-validate	Run tests	2025-09-12T19:46:10.1714188Z PASS tests/integration/zerodha.extra.integration.test.ts (7.833 s)
+infra-validate	Run tests	2025-09-12T19:46:10.6474251Z PASS tests/rules/trendlineBreak.test.ts
+infra-validate	Run tests	2025-09-12T19:46:10.6753081Z PASS tests/rules/marketThrust.test.ts
+infra-validate	Run tests	2025-09-12T19:46:10.8684835Z [19:46:10.034] [32mINFO[39m (3017): [36mConnected to Zerodha WebSocket[39m
+infra-validate	Run tests	2025-09-12T19:46:10.8726542Z [19:46:09.983] [32mINFO[39m (3015): [36mConnected to Zerodha WebSocket[39m
+infra-validate	Run tests	2025-09-12T19:46:10.9728189Z [19:46:10.093] [31mERROR[39m (3015): [36mThe value of "offset" is out of range. It must be >= 0 and <= 0. Received 2[39m
+infra-validate	Run tests	2025-09-12T19:46:10.9728855Z     message: "Failed to parse binary tick"
+infra-validate	Run tests	2025-09-12T19:46:10.9729115Z     err: {
+infra-validate	Run tests	2025-09-12T19:46:10.9729291Z       "type": "RangeError",
+infra-validate	Run tests	2025-09-12T19:46:10.9729838Z       "message": "The value of \"offset\" is out of range. It must be >= 0 and <= 0. Received 2",
+infra-validate	Run tests	2025-09-12T19:46:10.9730208Z       "stack":
+infra-validate	Run tests	2025-09-12T19:46:10.9730569Z           RangeError: The value of "offset" is out of range. It must be >= 0 and <= 0. Received 2
+infra-validate	Run tests	2025-09-12T19:46:10.9732563Z               at new NodeError (node:internal/errors:405:5)
+infra-validate	Run tests	2025-09-12T19:46:10.9732980Z               at boundsError (node:internal/buffer:88:9)
+infra-validate	Run tests	2025-09-12T19:46:10.9733349Z               at Buffer.readUInt32BE (node:internal/buffer:311:5)
+infra-validate	Run tests	2025-09-12T19:46:10.9734043Z               at ZerodhaService.readUInt32BE [as parseBinaryTick] (/home/runner/work/Trader_AI_BN/Trader_AI_BN/backend/src/services/zerodha.ts:238:38)
+infra-validate	Run tests	2025-09-12T19:46:10.9735023Z               at ZerodhaService.parseBinaryTick [as handleTick] (/home/runner/work/Trader_AI_BN/Trader_AI_BN/backend/src/services/zerodha.ts:218:27)
+infra-validate	Run tests	2025-09-12T19:46:10.9735881Z               at WebSocket.handleTick (/home/runner/work/Trader_AI_BN/Trader_AI_BN/backend/src/services/zerodha.ts:147:14)
+infra-validate	Run tests	2025-09-12T19:46:10.9736397Z               at WebSocket.emit (node:events:517:28)
+infra-validate	Run tests	2025-09-12T19:46:10.9737016Z               at Receiver.receiverOnMessage (/home/runner/work/Trader_AI_BN/Trader_AI_BN/backend/node_modules/ws/lib/websocket.js:1220:20)
+infra-validate	Run tests	2025-09-12T19:46:10.9737582Z               at Receiver.emit (node:events:517:28)
+infra-validate	Run tests	2025-09-12T19:46:10.9738145Z               at Receiver.dataMessage (/home/runner/work/Trader_AI_BN/Trader_AI_BN/backend/node_modules/ws/lib/receiver.js:569:14)
+infra-validate	Run tests	2025-09-12T19:46:10.9738924Z               at Receiver.getData (/home/runner/work/Trader_AI_BN/Trader_AI_BN/backend/node_modules/ws/lib/receiver.js:496:10)
+infra-validate	Run tests	2025-09-12T19:46:10.9739689Z               at Receiver.startLoop (/home/runner/work/Trader_AI_BN/Trader_AI_BN/backend/node_modules/ws/lib/receiver.js:167:16)
+infra-validate	Run tests	2025-09-12T19:46:10.9740439Z               at Receiver._write (/home/runner/work/Trader_AI_BN/Trader_AI_BN/backend/node_modules/ws/lib/receiver.js:94:10)
+infra-validate	Run tests	2025-09-12T19:46:10.9740995Z               at writeOrBuffer (node:internal/streams/writable:392:12)
+infra-validate	Run tests	2025-09-12T19:46:10.9741372Z               at _write (node:internal/streams/writable:333:10)
+infra-validate	Run tests	2025-09-12T19:46:10.9741774Z               at Receiver.Writable.write (node:internal/streams/writable:337:10)
+infra-validate	Run tests	2025-09-12T19:46:10.9742658Z               at Socket.socketOnData (/home/runner/work/Trader_AI_BN/Trader_AI_BN/backend/node_modules/ws/lib/websocket.js:1355:35)
+infra-validate	Run tests	2025-09-12T19:46:10.9744101Z               at Socket.emit (node:events:517:28)
+infra-validate	Run tests	2025-09-12T19:46:10.9744682Z               at addChunk (node:internal/streams/readable:368:12)
+infra-validate	Run tests	2025-09-12T19:46:10.9745361Z               at readableAddChunk (node:internal/streams/readable:341:9)
+infra-validate	Run tests	2025-09-12T19:46:10.9746147Z               at Socket.Readable.push (node:internal/streams/readable:278:10)
+infra-validate	Run tests	2025-09-12T19:46:10.9747270Z               at TCP.onStreamRead (node:internal/stream_base_commons:190:23)
+infra-validate	Run tests	2025-09-12T19:46:10.9747907Z       "code": "ERR_OUT_OF_RANGE"
+infra-validate	Run tests	2025-09-12T19:46:10.9748381Z     }
+infra-validate	Run tests	2025-09-12T19:46:10.9749581Z [19:46:10.170] [31mERROR[39m (3015): [36mThe value of "offset" is out of range. It must be >= 0 and <= 0. Received 2[39m
+infra-validate	Run tests	2025-09-12T19:46:10.9750494Z     message: "Failed to parse binary tick"
+infra-validate	Run tests	2025-09-12T19:46:10.9750949Z     err: {
+infra-validate	Run tests	2025-09-12T19:46:10.9751259Z       "type": "RangeError",
+infra-validate	Run tests	2025-09-12T19:46:10.9751963Z       "message": "The value of \"offset\" is out of range. It must be >= 0 and <= 0. Received 2",
+infra-validate	Run tests	2025-09-12T19:46:10.9754068Z       "stack":
+infra-validate	Run tests	2025-09-12T19:46:10.9754745Z           RangeError: The value of "offset" is out of range. It must be >= 0 and <= 0. Received 2
+infra-validate	Run tests	2025-09-12T19:46:10.9755549Z               at new NodeError (node:internal/errors:405:5)
+infra-validate	Run tests	2025-09-12T19:46:10.9756173Z               at boundsError (node:internal/buffer:88:9)
+infra-validate	Run tests	2025-09-12T19:46:10.9756822Z               at Buffer.readUInt32BE (node:internal/buffer:311:5)
+infra-validate	Run tests	2025-09-12T19:46:10.9758115Z               at ZerodhaService.readUInt32BE [as parseBinaryTick] (/home/runner/work/Trader_AI_BN/Trader_AI_BN/backend/src/services/zerodha.ts:238:38)
+infra-validate	Run tests	2025-09-12T19:46:10.9759892Z               at ZerodhaService.parseBinaryTick [as handleTick] (/home/runner/work/Trader_AI_BN/Trader_AI_BN/backend/src/services/zerodha.ts:218:27)
+infra-validate	Run tests	2025-09-12T19:46:10.9761434Z               at WebSocket.handleTick (/home/runner/work/Trader_AI_BN/Trader_AI_BN/backend/src/services/zerodha.ts:147:14)
+infra-validate	Run tests	2025-09-12T19:46:10.9762765Z               at WebSocket.emit (node:events:517:28)
+infra-validate	Run tests	2025-09-12T19:46:10.9763953Z               at Receiver.receiverOnMessage (/home/runner/work/Trader_AI_BN/Trader_AI_BN/backend/node_modules/ws/lib/websocket.js:1220:20)
+infra-validate	Run tests	2025-09-12T19:46:10.9765024Z               at Receiver.emit (node:events:517:28)
+infra-validate	Run tests	2025-09-12T19:46:10.9766110Z               at Receiver.dataMessage (/home/runner/work/Trader_AI_BN/Trader_AI_BN/backend/node_modules/ws/lib/receiver.js:569:14)
+infra-validate	Run tests	2025-09-12T19:46:10.9767649Z               at Receiver.getData (/home/runner/work/Trader_AI_BN/Trader_AI_BN/backend/node_modules/ws/lib/receiver.js:496:10)
+infra-validate	Run tests	2025-09-12T19:46:10.9769111Z               at Receiver.startLoop (/home/runner/work/Trader_AI_BN/Trader_AI_BN/backend/node_modules/ws/lib/receiver.js:167:16)
+infra-validate	Run tests	2025-09-12T19:46:10.9770521Z               at Receiver._write (/home/runner/work/Trader_AI_BN/Trader_AI_BN/backend/node_modules/ws/lib/receiver.js:94:10)
+infra-validate	Run tests	2025-09-12T19:46:10.9771555Z               at writeOrBuffer (node:internal/streams/writable:392:12)
+infra-validate	Run tests	2025-09-12T19:46:10.9772259Z               at _write (node:internal/streams/writable:333:10)
+infra-validate	Run tests	2025-09-12T19:46:10.9773233Z               at Receiver.Writable.write (node:internal/streams/writable:337:10)
+infra-validate	Run tests	2025-09-12T19:46:10.9774450Z               at Socket.socketOnData (/home/runner/work/Trader_AI_BN/Trader_AI_BN/backend/node_modules/ws/lib/websocket.js:1355:35)
+infra-validate	Run tests	2025-09-12T19:46:10.9775416Z               at Socket.emit (node:events:517:28)
+infra-validate	Run tests	2025-09-12T19:46:10.9776021Z               at addChunk (node:internal/streams/readable:368:12)
+infra-validate	Run tests	2025-09-12T19:46:10.9776724Z               at readableAddChunk (node:internal/streams/readable:341:9)
+infra-validate	Run tests	2025-09-12T19:46:10.9777502Z               at Socket.Readable.push (node:internal/streams/readable:278:10)
+infra-validate	Run tests	2025-09-12T19:46:10.9799230Z               at TCP.onStreamRead (node:internal/stream_base_commons:190:23)
+infra-validate	Run tests	2025-09-12T19:46:10.9799898Z       "code": "ERR_OUT_OF_RANGE"
+infra-validate	Run tests	2025-09-12T19:46:10.9800283Z     }
+infra-validate	Run tests	2025-09-12T19:46:10.9801070Z [19:46:10.182] [33mWARN[39m (3015): [36mZerodha WebSocket closed[39m
+infra-validate	Run tests	2025-09-12T19:46:11.1307850Z PASS tests/rules/openingRangeBreakout.test.ts
+infra-validate	Run tests	2025-09-12T19:46:11.4176415Z PASS tests/unit/zerodha.oauthRefresh.smoke.test.ts
+infra-validate	Run tests	2025-09-12T19:46:11.4749064Z PASS tests/rules/dynamicSR.test.ts
+infra-validate	Run tests	2025-09-12T19:46:11.5915561Z [19:46:11.401] [32mINFO[39m (3016): [36mAttempting token refresh[39m
+infra-validate	Run tests	2025-09-12T19:46:11.7190793Z PASS tests/rules/volumeBalance.test.ts
+infra-validate	Run tests	2025-09-12T19:46:11.9277319Z PASS tests/rules/supertrend.test.ts
+infra-validate	Run tests	2025-09-12T19:46:12.0688174Z PASS tests/integration/zerodha.jitter.integration.test.ts (9.735 s)
+infra-validate	Run tests	2025-09-12T19:46:12.1277853Z PASS tests/unit/zerodha.tokenRefresh.test.ts
+infra-validate	Run tests	2025-09-12T19:46:12.1354905Z [19:46:11.935] [32mINFO[39m (3016): [36mAttempting token refresh[39m
+infra-validate	Run tests	2025-09-12T19:46:12.1589853Z PASS tests/rules/macd_momentum.test.ts
+infra-validate	Run tests	2025-09-12T19:46:12.2675431Z [19:46:12.096] [32mINFO[39m (3016): [36mAttempting token refresh[39m
+infra-validate	Run tests	2025-09-12T19:46:12.4548659Z PASS tests/rules/optionGreeks.test.ts
+infra-validate	Run tests	2025-09-12T19:46:12.5210754Z PASS tests/rules/momentumDivergence.test.ts
+infra-validate	Run tests	2025-09-12T19:46:12.5628034Z PASS tests/rules/optionFlow.test.ts
+infra-validate	Run tests	2025-09-12T19:46:12.9245856Z [19:46:12.520] [32mINFO[39m (3017): [36mZerodha WebSocket disabled by environment; connect() skipped[39m
+infra-validate	Run tests	2025-09-12T19:46:12.9306838Z PASS tests/rules/intradayCorrelation.test.ts
+infra-validate	Run tests	2025-09-12T19:46:12.9554730Z PASS tests/rules/orderflowDelta.test.ts
+infra-validate	Run tests	2025-09-12T19:46:13.1845583Z PASS tests/rules/preMarketMomentum.test.ts
+infra-validate	Run tests	2025-09-12T19:46:13.3129798Z PASS tests/rules/marketProfile.test.ts
+infra-validate	Run tests	2025-09-12T19:46:13.3724194Z PASS tests/rules/hhhlLLlh.test.ts
+infra-validate	Run tests	2025-09-12T19:46:13.5354418Z PASS tests/rules/volatilityExpansion.test.ts
+infra-validate	Run tests	2025-09-12T19:46:13.6802947Z PASS tests/rules/gapAnalysis.test.ts
+infra-validate	Run tests	2025-09-12T19:46:13.7648442Z PASS tests/rules/timePattern.test.ts
+infra-validate	Run tests	2025-09-12T19:46:13.9398362Z PASS tests/rules/rsiAdaptive.test.ts
+infra-validate	Run tests	2025-09-12T19:46:13.9904419Z PASS tests/rules/stochastic.test.ts
+infra-validate	Run tests	2025-09-12T19:46:14.1280212Z PASS tests/rules/volumeProfile.test.ts
+infra-validate	Run tests	2025-09-12T19:46:14.3213447Z PASS tests/rules/adrPdrBreakout.test.ts
+infra-validate	Run tests	2025-09-12T19:46:14.4413291Z PASS tests/rules/momentumThreshold.test.ts
+infra-validate	Run tests	2025-09-12T19:46:14.4433302Z PASS tests/rules/meanReversion.test.ts
+infra-validate	Run tests	2025-09-12T19:46:14.6469090Z PASS tests/rules/trendHTF.test.ts
+infra-validate	Run tests	2025-09-12T19:46:14.7289698Z PASS tests/rules/ivCrush.test.ts
+infra-validate	Run tests	2025-09-12T19:46:14.7547121Z PASS tests/rules/volumeClimax.test.ts
+infra-validate	Run tests	2025-09-12T19:46:14.9632110Z PASS tests/rules/bollingerSqueeze.test.ts
+infra-validate	Run tests	2025-09-12T19:46:15.0293562Z PASS tests/rules/roundNumberMagnet.test.ts
+infra-validate	Run tests	2025-09-12T19:46:15.0416480Z PASS tests/rules/macdCross.test.ts
+infra-validate	Run tests	2025-09-12T19:46:15.2373855Z PASS tests/rules/wickRejection.test.ts
+infra-validate	Run tests	2025-09-12T19:46:15.3214644Z PASS tests/rules/sectorRotation.test.ts
+infra-validate	Run tests	2025-09-12T19:46:15.3867749Z PASS tests/rules/insideBar.test.ts
+infra-validate	Run tests	2025-09-12T19:46:15.6606151Z PASS tests/rules/engulfingVolume.test.ts
+infra-validate	Run tests	2025-09-12T19:46:15.7057231Z PASS tests/rules/newsFilter.test.ts
+infra-validate	Run tests	2025-09-12T19:46:16.0260116Z PASS tests/rules/vwapBias.test.ts
+infra-validate	Run tests	2025-09-12T19:46:16.0386639Z PASS tests/rules/threeBarThrust.test.ts
+infra-validate	Run tests	2025-09-12T19:46:16.2161183Z PASS tests/rules/spreadGuard.test.ts
+infra-validate	Run tests	2025-09-12T19:46:16.2215314Z [19:46:16.097] [33mWARN[39m (3017):
+infra-validate	Run tests	2025-09-12T19:46:16.2216292Z     message: "Subscribe rate limit exceeded; suspending subscriptions"
+infra-validate	Run tests	2025-09-12T19:46:16.2217164Z     backoffMs: 200
+infra-validate	Run tests	2025-09-12T19:46:16.2640984Z PASS tests/rules/liquidityGrab.test.ts
+infra-validate	Run tests	2025-09-12T19:46:16.3784094Z PASS tests/unit/zerodha.rateLimit.test.ts
+infra-validate	Run tests	2025-09-12T19:46:16.5255246Z PASS tests/rules/cvdImbalance.test.ts
+infra-validate	Run tests	2025-09-12T19:46:16.5327598Z PASS tests/rules/atrNormalization.test.ts
+infra-validate	Run tests	2025-09-12T19:46:16.8281581Z PASS tests/rules/swingBreak.test.ts
+infra-validate	Run tests	2025-09-12T19:46:16.8896739Z PASS tests/health.test.ts
+infra-validate	Run tests	2025-09-12T19:46:17.0574395Z PASS tests/rules/breakRetest.test.ts
+infra-validate	Run tests	2025-09-12T19:46:17.1266396Z PASS tests/rules/breadthProxy.test.ts
+infra-validate	Run tests	2025-09-12T19:46:17.1523610Z PASS tests/unit/zerodha.refreshHandler.test.ts
+infra-validate	Run tests	2025-09-12T19:46:17.3100803Z [19:46:17.140] [32mINFO[39m (3016): [36mAttempting token refresh[39m
+infra-validate	Run tests	2025-09-12T19:46:17.7344684Z PASS tests/unit/zerodha.autoResubscribe.test.ts
+infra-validate	Run tests	2025-09-12T19:46:17.7577329Z PASS tests/unit/zerodha.reconnect.test.ts
+infra-validate	Run tests	2025-09-12T19:46:17.8067637Z PASS tests/unit/zerodha.reconnectOptions.test.ts
+infra-validate	Run tests	2025-09-12T19:46:17.9312103Z [19:46:17.761] [33mWARN[39m (3017): [36mNo access token available[39m
+infra-validate	Run tests	2025-09-12T19:46:17.9313360Z     message: "Reconnect attempt failed"
+infra-validate	Run tests	2025-09-12T19:46:17.9313821Z     err: {
+infra-validate	Run tests	2025-09-12T19:46:17.9314556Z       "type": "Error",
+infra-validate	Run tests	2025-09-12T19:46:17.9314976Z       "message": "No access token available",
+infra-validate	Run tests	2025-09-12T19:46:17.9315397Z       "stack":
+infra-validate	Run tests	2025-09-12T19:46:17.9315771Z           Error: No access token available
+infra-validate	Run tests	2025-09-12T19:46:17.9316729Z               at ZerodhaService.connect (/home/runner/work/Trader_AI_BN/Trader_AI_BN/backend/src/services/zerodha.ts:132:13)
+infra-validate	Run tests	2025-09-12T19:46:17.9318144Z               at Timeout.connect [as _onTimeout] (/home/runner/work/Trader_AI_BN/Trader_AI_BN/backend/src/services/zerodha.ts:376:12)
+infra-validate	Run tests	2025-09-12T19:46:17.9319098Z               at listOnTimeout (node:internal/timers:569:17)
+infra-validate	Run tests	2025-09-12T19:46:17.9319699Z               at processTimers (node:internal/timers:512:7)
+infra-validate	Run tests	2025-09-12T19:46:17.9320145Z     }
+infra-validate	Run tests	2025-09-12T19:46:18.1054089Z PASS tests/unit/zerodha.subscribe.test.ts
+infra-validate	Run tests	2025-09-12T19:46:18.3496581Z ------------------------------|---------|----------|---------|---------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+infra-validate	Run tests	2025-09-12T19:46:18.3498500Z File                          | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                                                                                                                                                                  
+infra-validate	Run tests	2025-09-12T19:46:18.3499709Z ------------------------------|---------|----------|---------|---------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+infra-validate	Run tests	2025-09-12T19:46:18.3504156Z All files                     |   72.16 |    44.16 |   79.79 |   72.18 |                                                                                                                                                                                    
+infra-validate	Run tests	2025-09-12T19:46:18.3504975Z  db                           |      96 |      100 |       0 |      95 |                                                                                                                                                                                    
+infra-validate	Run tests	2025-09-12T19:46:18.3506215Z   entities.ts                 |      96 |      100 |       0 |      95 | 55,57                                                                                                                                                                              
+infra-validate	Run tests	2025-09-12T19:46:18.3507134Z  services                     |   65.57 |    48.91 |    72.3 |   64.82 |                                                                                                                                                                                    
+infra-validate	Run tests	2025-09-12T19:46:18.3512195Z   zerodha.ts                  |   65.57 |    48.91 |    72.3 |   64.82 | 79-126,137-138,189-191,198-199,226,258-313,332-333,338,344-346,359-360,391-402,409-410,425-426,451-452,459-460,478,492-512,518,534-535,551-553,566-574,591,629-633,675-708,761-769 
+infra-validate	Run tests	2025-09-12T19:46:18.3514300Z  services/rules               |   74.15 |    43.79 |   88.76 |   74.58 |                                                                                                                                                                                    
+infra-validate	Run tests	2025-09-12T19:46:18.3515653Z   adrPdrBreakoutRule.ts       |   61.29 |    42.85 |     100 |      60 | 12,30-31,40-53                                                                                                                                                                     
+infra-validate	Run tests	2025-09-12T19:46:18.3517076Z   atrNormalizationRule.ts     |   88.88 |       50 |     100 |   92.85 | 18                                                                                                                                                                                 
+infra-validate	Run tests	2025-09-12T19:46:18.3518675Z   base.ts                     |      75 |    66.66 |     100 |      75 | 21-23                                                                                                                                                                              
+infra-validate	Run tests	2025-09-12T19:46:18.3520280Z   bollingerSqueezeRule.ts     |   57.69 |    44.44 |      50 |   60.86 | 14,26-37                                                                                                                                                                           
+infra-validate	Run tests	2025-09-12T19:46:18.3521645Z   breadthProxyRule.ts         |      75 |    45.45 |     100 |   84.61 | 17-18                                                                                                                                                                              
+infra-validate	Run tests	2025-09-12T19:46:18.3523135Z   breakRetestRule.ts          |   58.82 |    33.33 |      50 |   69.23 | 18-22                                                                                                                                                                              
+infra-validate	Run tests	2025-09-12T19:46:18.3524456Z   cvdImbalanceRule.ts         |    87.5 |       60 |     100 |   93.33 | 21                                                                                                                                                                                 
+infra-validate	Run tests	2025-09-12T19:46:18.3525810Z   dynamicSRRule.ts            |   70.66 |    47.36 |      80 |   68.57 | 19,37,42-44,61-87,128-139,161                                                                                                                                                      
+infra-validate	Run tests	2025-09-12T19:46:18.3527238Z   engulfingVolumeRule.ts      |   38.88 |     7.69 |      50 |   42.85 | 12-22                                                                                                                                                                              
+infra-validate	Run tests	2025-09-12T19:46:18.3528564Z   gapAnalysisRule.ts          |   90.47 |       70 |     100 |   89.74 | 18,57,67,81                                                                                                                                                                        
+infra-validate	Run tests	2025-09-12T19:46:18.3529793Z   hhhlLLlh.ts                 |      50 |    13.33 |   66.66 |   48.27 | 27-60                                                                                                                                                                              
+infra-validate	Run tests	2025-09-12T19:46:18.3531026Z   insideBarRule.ts            |   33.33 |    16.66 |   33.33 |    37.5 | 12-25                                                                                                                                                                              
+infra-validate	Run tests	2025-09-12T19:46:18.3532576Z   intradayCorrelationRule.ts  |   89.28 |    45.45 |     100 |   88.37 | 13,20,33-36                                                                                                                                                                        
+infra-validate	Run tests	2025-09-12T19:46:18.3533943Z   ivCrushRule.ts              |   73.68 |    55.55 |     100 |   77.77 | 20-21,29-30                                                                                                                                                                        
+infra-validate	Run tests	2025-09-12T19:46:18.3535335Z   liquidityGrabRule.ts        |   60.71 |    14.28 |      60 |    62.5 | 11,28-31,37-40                                                                                                                                                                     
+infra-validate	Run tests	2025-09-12T19:46:18.3536656Z   macdCrossRule.ts            |      84 |       50 |     100 |   83.33 | 28-29,33-34                                                                                                                                                                        
+infra-validate	Run tests	2025-09-12T19:46:18.3538468Z   marketProfileRule.ts        |   80.48 |    66.66 |     100 |   79.48 | 17,25-26,35-41                                                                                                                                                                     
+infra-validate	Run tests	2025-09-12T19:46:18.3540025Z   marketThrustRule.ts         |   77.55 |    58.82 |   77.77 |   79.06 | 17,29,35,39,60,79-83                                                                                                                                                               
+infra-validate	Run tests	2025-09-12T19:46:18.3541522Z   meanReversionRule.ts        |   78.94 |    33.33 |     100 |   77.14 | 18,34,48-50,60-62                                                                                                                                                                  
+infra-validate	Run tests	2025-09-12T19:46:18.3543085Z   momentumDivergenceRule.ts   |   51.51 |    13.33 |     100 |      50 | 14,34-69                                                                                                                                                                           
+infra-validate	Run tests	2025-09-12T19:46:18.3544505Z   momentumThresholdRule.ts    |   93.33 |    55.55 |     100 |    92.3 | 39,47                                                                                                                                                                              
+infra-validate	Run tests	2025-09-12T19:46:18.3545839Z   newsFilterRule.ts           |   84.61 |    66.66 |     100 |    90.9 | 15                                                                                                                                                                                 
+infra-validate	Run tests	2025-09-12T19:46:18.3547204Z   openingRangeBreakoutRule.ts |   72.88 |       40 |     100 |   73.68 | 18,28,36,46,68-95,120                                                                                                                                                              
+infra-validate	Run tests	2025-09-12T19:46:18.3548652Z   optionFlowRule.ts           |   82.43 |       38 |     100 |   83.09 | 26,34,46,55,64-65,139,142,148-153                                                                                                                                                  
+infra-validate	Run tests	2025-09-12T19:46:18.3550023Z   optionGreeksRule.ts         |   72.72 |    53.84 |     100 |   72.72 | 19,36-56                                                                                                                                                                           
+infra-validate	Run tests	2025-09-12T19:46:18.3551405Z   orderflowDeltaRule.ts       |   84.37 |    63.63 |     100 |   85.18 | 15,40-42                                                                                                                                                                           
+infra-validate	Run tests	2025-09-12T19:46:18.3552998Z   preMarketMomentumRule.ts    |   72.97 |    39.13 |     100 |   72.22 | 24,30,48-70,83                                                                                                                                                                     
+infra-validate	Run tests	2025-09-12T19:46:18.3554423Z   roundNumberMagnetRule.ts    |    87.5 |     37.5 |     100 |    87.5 | 11,26                                                                                                                                                                              
+infra-validate	Run tests	2025-09-12T19:46:18.3555818Z   rsiAdaptive.ts              |   69.69 |       30 |      80 |   66.66 | 14,28-30,36-38,47,50,58                                                                                                                                                            
+infra-validate	Run tests	2025-09-12T19:46:18.3557201Z   sectorRotationRule.ts       |   67.74 |    46.66 |     100 |   67.74 | 12,19,30-38,51-56                                                                                                                                                                  
+infra-validate	Run tests	2025-09-12T19:46:18.3558585Z   spreadGuardRule.ts          |   83.33 |    57.14 |     100 |    90.9 | 15                                                                                                                                                                                 
+infra-validate	Run tests	2025-09-12T19:46:18.3560209Z   stochasticRule.ts           |   82.35 |    27.27 |     100 |     100 | 12-19                                                                                                                                                                              
+infra-validate	Run tests	2025-09-12T19:46:18.3561873Z   supertrendRule.ts           |    82.6 |    44.44 |     100 |   84.21 | 26-30                                                                                                                                                                              
+infra-validate	Run tests	2025-09-12T19:46:18.3563365Z   swingBreak.ts               |      50 |       40 |   66.66 |   47.82 | 22-49                                                                                                                                                                              
+infra-validate	Run tests	2025-09-12T19:46:18.3564718Z   threeBarThrustRule.ts       |   82.35 |    36.36 |     100 |     100 | 10-16                                                                                                                                                                              
+infra-validate	Run tests	2025-09-12T19:46:18.3566125Z   timePatternRule.ts          |      76 |    42.85 |     100 |   73.13 | 28,35,44-52,64-90,109                                                                                                                                                              
+infra-validate	Run tests	2025-09-12T19:46:18.3567434Z   trendHTF.ts                 |   82.14 |    57.14 |     100 |   83.33 | 16,39-43                                                                                                                                                                           
+infra-validate	Run tests	2025-09-12T19:46:18.3568688Z   trendlineBreak.ts           |   62.22 |     37.5 |   77.77 |   59.45 | 27,38-46,55-63                                                                                                                                                                     
+infra-validate	Run tests	2025-09-12T19:46:18.3570128Z   volatilityExpansionRule.ts  |   79.31 |       25 |     100 |      75 | 17,36-46                                                                                                                                                                           
+infra-validate	Run tests	2025-09-12T19:46:18.3571572Z   volumeBalanceRule.ts        |    72.5 |    30.76 |     100 |   71.79 | 12,24-27,34,51-60,79-88                                                                                                                                                            
+infra-validate	Run tests	2025-09-12T19:46:18.3573206Z   volumeClimaxRule.ts         |   61.53 |       25 |     100 |   58.33 | 16,29-54                                                                                                                                                                           
+infra-validate	Run tests	2025-09-12T19:46:18.3574618Z   volumeProfileRule.ts        |   90.19 |    55.55 |     100 |   91.11 | 21,32,48,62                                                                                                                                                                        
+infra-validate	Run tests	2025-09-12T19:46:18.3575960Z   vwapBias.ts                 |   78.94 |    33.33 |     100 |   78.94 | 15,35-43                                                                                                                                                                           
+infra-validate	Run tests	2025-09-12T19:46:18.3577290Z   wickRejectionRule.ts        |   85.71 |    85.71 |     100 |   85.71 | 16,19                                                                                                                                                                              
+infra-validate	Run tests	2025-09-12T19:46:18.3578557Z  utils                        |   48.46 |       30 |   48.57 |   48.25 |                                                                                                                                                                                    
+infra-validate	Run tests	2025-09-12T19:46:18.3579942Z   crypto.ts                   |   31.25 |      100 |       0 |   31.25 | 12-19,23-40,44-58                                                                                                                                                                  
+infra-validate	Run tests	2025-09-12T19:46:18.3581377Z   helpers.ts                  |      60 |      100 |       0 |      60 | 7-9                                                                                                                                                                                
+infra-validate	Run tests	2025-09-12T19:46:18.3582859Z   indicators.ts               |   51.61 |    19.23 |   54.83 |   51.92 | 26,37-49,67-79,97-172                                                                                                                                                              
+infra-validate	Run tests	2025-09-12T19:46:18.3584144Z   logger.ts                   |     100 |      100 |     100 |     100 |                                                                                                                                                                                    
+infra-validate	Run tests	2025-09-12T19:46:18.3585432Z  utils/indicators             |   95.55 |       50 |     100 |   94.87 |                                                                                                                                                                                    
+infra-validate	Run tests	2025-09-12T19:46:18.3586683Z   atr.ts                      |   95.45 |       80 |     100 |   94.73 | 4                                                                                                                                                                                  
+infra-validate	Run tests	2025-09-12T19:46:18.3587855Z   bollinger.ts                |   94.73 |        0 |     100 |   93.75 | 11                                                                                                                                                                                 
+infra-validate	Run tests	2025-09-12T19:46:18.3589101Z   ema.ts                      |   93.33 |        0 |     100 |    92.3 | 4                                                                                                                                                                                  
+infra-validate	Run tests	2025-09-12T19:46:18.3590245Z   macd.ts                     |     100 |       50 |     100 |     100 | 9,15-33                                                                                                                                                                            
+infra-validate	Run tests	2025-09-12T19:46:18.3591401Z   sma.ts                      |   92.85 |        0 |     100 |   91.66 | 4                                                                                                                                                                                  
+infra-validate	Run tests	2025-09-12T19:46:18.3593269Z ------------------------------|---------|----------|---------|---------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+infra-validate	Run tests	2025-09-12T19:46:18.4179102Z 
+infra-validate	Run tests	2025-09-12T19:46:18.4183039Z Test Suites: 56 passed, 56 total
+infra-validate	Run tests	2025-09-12T19:46:18.4183538Z Tests:       61 passed, 61 total
+infra-validate	Run tests	2025-09-12T19:46:18.4183810Z Snapshots:   0 total
+infra-validate	Run tests	2025-09-12T19:46:18.4184028Z Time:        16.369 s
+infra-validate	Run tests	2025-09-12T19:46:18.4184276Z Ran all test suites.
+infra-validate	Smoke healthcheck	∩╗┐2025-09-12T19:46:18.4464525Z ##[group]Run echo "Waiting up to 15s for service on tcp:8080..."
+infra-validate	Smoke healthcheck	2025-09-12T19:46:18.4464979Z [36;1mecho "Waiting up to 15s for service on tcp:8080..."[0m
+infra-validate	Smoke healthcheck	2025-09-12T19:46:18.4465409Z [36;1mnpx wait-on --timeout 15000 tcp:8080 || echo "wait-on timed out, continuing"[0m
+infra-validate	Smoke healthcheck	2025-09-12T19:46:18.4465808Z [36;1mecho "Attempting HTTP GET /health"[0m
+infra-validate	Smoke healthcheck	2025-09-12T19:46:18.4466163Z [36;1mif curl --fail --max-time 5 http://localhost:8080/health; then[0m
+infra-validate	Smoke healthcheck	2025-09-12T19:46:18.4466515Z [36;1m  echo "Healthcheck succeeded"[0m
+infra-validate	Smoke healthcheck	2025-09-12T19:46:18.4466746Z [36;1melse[0m
+infra-validate	Smoke healthcheck	2025-09-12T19:46:18.4467187Z [36;1m  echo "Healthcheck failed or service unavailable (non-fatal)"[0m
+infra-validate	Smoke healthcheck	2025-09-12T19:46:18.4467495Z [36;1mfi[0m
+infra-validate	Smoke healthcheck	2025-09-12T19:46:18.4499152Z shell: /usr/bin/bash -e {0}
+infra-validate	Smoke healthcheck	2025-09-12T19:46:18.4499386Z ##[endgroup]
+infra-validate	Smoke healthcheck	2025-09-12T19:46:18.4549408Z Waiting up to 15s for service on tcp:8080...
+infra-validate	Smoke healthcheck	2025-09-12T19:46:19.3788963Z npm warn exec The following package was not found and will be installed: wait-on@8.0.4
+infra-validate	Smoke healthcheck	2025-09-12T19:46:36.5387288Z Error: Timed out waiting for: tcp:8080
+infra-validate	Smoke healthcheck	2025-09-12T19:46:36.5388329Z     at /home/runner/.npm/_npx/04d57496964ca6d1/node_modules/wait-on/lib/wait-on.js:131:31
+infra-validate	Smoke healthcheck	2025-09-12T19:46:36.5389787Z     at doInnerSub (/home/runner/.npm/_npx/04d57496964ca6d1/node_modules/rxjs/dist/cjs/internal/operators/mergeInternals.js:22:31)
+infra-validate	Smoke healthcheck	2025-09-12T19:46:36.5392021Z     at outerNext (/home/runner/.npm/_npx/04d57496964ca6d1/node_modules/rxjs/dist/cjs/internal/operators/mergeInternals.js:17:70)
+infra-validate	Smoke healthcheck	2025-09-12T19:46:36.5394029Z     at OperatorSubscriber._this._next (/home/runner/.npm/_npx/04d57496964ca6d1/node_modules/rxjs/dist/cjs/internal/operators/OperatorSubscriber.js:33:21)
+infra-validate	Smoke healthcheck	2025-09-12T19:46:36.5395780Z     at Subscriber.next (/home/runner/.npm/_npx/04d57496964ca6d1/node_modules/rxjs/dist/cjs/internal/Subscriber.js:51:18)
+infra-validate	Smoke healthcheck	2025-09-12T19:46:36.5397235Z     at AsyncAction.work (/home/runner/.npm/_npx/04d57496964ca6d1/node_modules/rxjs/dist/cjs/internal/observable/timer.js:28:28)
+infra-validate	Smoke healthcheck	2025-09-12T19:46:36.5399155Z     at AsyncAction._execute (/home/runner/.npm/_npx/04d57496964ca6d1/node_modules/rxjs/dist/cjs/internal/scheduler/AsyncAction.js:79:18)
+infra-validate	Smoke healthcheck	2025-09-12T19:46:36.5402091Z     at AsyncAction.execute (/home/runner/.npm/_npx/04d57496964ca6d1/node_modules/rxjs/dist/cjs/internal/scheduler/AsyncAction.js:67:26)
+infra-validate	Smoke healthcheck	2025-09-12T19:46:36.5404744Z     at AsyncScheduler.flush (/home/runner/.npm/_npx/04d57496964ca6d1/node_modules/rxjs/dist/cjs/internal/scheduler/AsyncScheduler.js:38:33)
+infra-validate	Smoke healthcheck	2025-09-12T19:46:36.5405984Z     at listOnTimeout (node:internal/timers:569:17)
+infra-validate	Smoke healthcheck	2025-09-12T19:46:36.5547766Z wait-on timed out, continuing
+infra-validate	Smoke healthcheck	2025-09-12T19:46:36.5548200Z Attempting HTTP GET /health
+infra-validate	Smoke healthcheck	2025-09-12T19:46:36.5616194Z   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+infra-validate	Smoke healthcheck	2025-09-12T19:46:36.5617185Z                                  Dload  Upload   Total   Spent    Left  Speed
+infra-validate	Smoke healthcheck	2025-09-12T19:46:36.5617621Z 
+infra-validate	Smoke healthcheck	2025-09-12T19:46:36.5618199Z   0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+infra-validate	Smoke healthcheck	2025-09-12T19:46:36.5618985Z   0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+infra-validate	Smoke healthcheck	2025-09-12T19:46:36.5621561Z curl: (7) Failed to connect to localhost port 8080 after 0 ms: Couldn't connect to server
+infra-validate	Smoke healthcheck	2025-09-12T19:46:36.5627874Z Healthcheck failed or service unavailable (non-fatal)
+infra-validate	Post Set up Node.js	∩╗┐2025-09-12T19:46:36.5688839Z Post job cleanup.
+infra-validate	Post Run actions/checkout@v4	∩╗┐2025-09-12T19:46:36.7354730Z Post job cleanup.
+infra-validate	Post Run actions/checkout@v4	2025-09-12T19:46:36.8296289Z [command]/usr/bin/git version
+infra-validate	Post Run actions/checkout@v4	2025-09-12T19:46:36.8331693Z git version 2.51.0
+infra-validate	Post Run actions/checkout@v4	2025-09-12T19:46:36.8381262Z Temporarily overriding HOME='/home/runner/work/_temp/8248ff9d-345f-40a6-8dd3-0402c698afd0' before making global git config changes
+infra-validate	Post Run actions/checkout@v4	2025-09-12T19:46:36.8382957Z Adding repository directory to the temporary git global config as a safe directory
+infra-validate	Post Run actions/checkout@v4	2025-09-12T19:46:36.8387613Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Trader_AI_BN/Trader_AI_BN
+infra-validate	Post Run actions/checkout@v4	2025-09-12T19:46:36.8421315Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+infra-validate	Post Run actions/checkout@v4	2025-09-12T19:46:36.8453625Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+infra-validate	Post Run actions/checkout@v4	2025-09-12T19:46:36.8678284Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+infra-validate	Post Run actions/checkout@v4	2025-09-12T19:46:36.8698667Z http.https://github.com/.extraheader
+infra-validate	Post Run actions/checkout@v4	2025-09-12T19:46:36.8711205Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+infra-validate	Post Run actions/checkout@v4	2025-09-12T19:46:36.8741232Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+infra-validate	Stop containers	∩╗┐2025-09-12T19:46:36.9046943Z Print service container logs: 72c92abf46a142edb0aa1499ac9154ce_postgres14_c84e2b
+infra-validate	Stop containers	2025-09-12T19:46:36.9051773Z ##[command]/usr/bin/docker logs --details 254bf03db272f5d46b4ae6ae9bf41f62347ddab3c436a2b97c60c73715c5ef16
+infra-validate	Stop containers	2025-09-12T19:46:36.9173965Z  initdb: warning: enabling "trust" authentication for local connections
+infra-validate	Stop containers	2025-09-12T19:46:36.9174829Z  The files belonging to this database system will be owned by user "postgres".
+infra-validate	Stop containers	2025-09-12T19:46:36.9175660Z  You can change this by editing pg_hba.conf or using the option -A, or
+infra-validate	Stop containers	2025-09-12T19:46:36.9176328Z  --auth-local and --auth-host, the next time you run initdb.
+infra-validate	Stop containers	2025-09-12T19:46:36.9177329Z  2025-09-12 19:45:31.668 UTC [1] LOG:  starting PostgreSQL 14.19 (Debian 14.19-1.pgdg13+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+infra-validate	Stop containers	2025-09-12T19:46:36.9178404Z  2025-09-12 19:45:31.668 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+infra-validate	Stop containers	2025-09-12T19:46:36.9178858Z  2025-09-12 19:45:31.668 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+infra-validate	Stop containers	2025-09-12T19:46:36.9179397Z  2025-09-12 19:45:31.670 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+infra-validate	Stop containers	2025-09-12T19:46:36.9179925Z  2025-09-12 19:45:31.673 UTC [63] LOG:  database system was shut down at 2025-09-12 19:45:31 UTC
+infra-validate	Stop containers	2025-09-12T19:46:36.9180387Z  2025-09-12 19:45:31.678 UTC [1] LOG:  database system is ready to accept connections
+infra-validate	Stop containers	2025-09-12T19:46:36.9180752Z  This user must also own the server process.
+infra-validate	Stop containers	2025-09-12T19:46:36.9181000Z  
+infra-validate	Stop containers	2025-09-12T19:46:36.9181247Z  The database cluster will be initialized with locale "en_US.utf8".
+infra-validate	Stop containers	2025-09-12T19:46:36.9181662Z  The default database encoding has accordingly been set to "UTF8".
+infra-validate	Stop containers	2025-09-12T19:46:36.9182054Z  The default text search configuration will be set to "english".
+infra-validate	Stop containers	2025-09-12T19:46:36.9182516Z  
+infra-validate	Stop containers	2025-09-12T19:46:36.9182723Z  Data page checksums are disabled.
+infra-validate	Stop containers	2025-09-12T19:46:36.9182936Z  
+infra-validate	Stop containers	2025-09-12T19:46:36.9183189Z  fixing permissions on existing directory /var/lib/postgresql/data ... ok
+infra-validate	Stop containers	2025-09-12T19:46:36.9183551Z  creating subdirectories ... ok
+infra-validate	Stop containers	2025-09-12T19:46:36.9183828Z  selecting dynamic shared memory implementation ... posix
+infra-validate	Stop containers	2025-09-12T19:46:36.9184140Z  selecting default max_connections ... 100
+infra-validate	Stop containers	2025-09-12T19:46:36.9184407Z  selecting default shared_buffers ... 128MB
+infra-validate	Stop containers	2025-09-12T19:46:36.9184655Z  selecting default time zone ... Etc/UTC
+infra-validate	Stop containers	2025-09-12T19:46:36.9184905Z  creating configuration files ... ok
+infra-validate	Stop containers	2025-09-12T19:46:36.9185141Z  running bootstrap script ... ok
+infra-validate	Stop containers	2025-09-12T19:46:36.9185408Z  performing post-bootstrap initialization ... ok
+infra-validate	Stop containers	2025-09-12T19:46:36.9185688Z  syncing data to disk ... ok
+infra-validate	Stop containers	2025-09-12T19:46:36.9185879Z  
+infra-validate	Stop containers	2025-09-12T19:46:36.9186096Z  
+infra-validate	Stop containers	2025-09-12T19:46:36.9186624Z  Success. You can now start the database server using:
+infra-validate	Stop containers	2025-09-12T19:46:36.9187120Z  
+infra-validate	Stop containers	2025-09-12T19:46:36.9187454Z      pg_ctl -D /var/lib/postgresql/data -l logfile start
+infra-validate	Stop containers	2025-09-12T19:46:36.9187875Z  
+infra-validate	Stop containers	2025-09-12T19:46:36.9188423Z  waiting for server to start....2025-09-12 19:45:31.360 UTC [48] LOG:  starting PostgreSQL 14.19 (Debian 14.19-1.pgdg13+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+infra-validate	Stop containers	2025-09-12T19:46:36.9189185Z  2025-09-12 19:45:31.361 UTC [48] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+infra-validate	Stop containers	2025-09-12T19:46:36.9189667Z  2025-09-12 19:45:31.363 UTC [49] LOG:  database system was shut down at 2025-09-12 19:45:31 UTC
+infra-validate	Stop containers	2025-09-12T19:46:36.9190115Z  2025-09-12 19:45:31.368 UTC [48] LOG:  database system is ready to accept connections
+infra-validate	Stop containers	2025-09-12T19:46:36.9190432Z   done
+infra-validate	Stop containers	2025-09-12T19:46:36.9190582Z  server started
+infra-validate	Stop containers	2025-09-12T19:46:36.9190761Z  CREATE DATABASE
+infra-validate	Stop containers	2025-09-12T19:46:36.9190918Z  
+infra-validate	Stop containers	2025-09-12T19:46:36.9191055Z  
+infra-validate	Stop containers	2025-09-12T19:46:36.9191339Z  /usr/local/bin/docker-entrypoint.sh: ignoring /docker-entrypoint-initdb.d/*
+infra-validate	Stop containers	2025-09-12T19:46:36.9191686Z  
+infra-validate	Stop containers	2025-09-12T19:46:36.9192127Z  2025-09-12 19:45:31.547 UTC [48] LOG:  received fast shutdown request
+infra-validate	Stop containers	2025-09-12T19:46:36.9192780Z  waiting for server to shut down....2025-09-12 19:45:31.548 UTC [48] LOG:  aborting any active transactions
+infra-validate	Stop containers	2025-09-12T19:46:36.9193583Z  2025-09-12 19:45:31.551 UTC [48] LOG:  background worker "logical replication launcher" (PID 55) exited with exit code 1
+infra-validate	Stop containers	2025-09-12T19:46:36.9194052Z  2025-09-12 19:45:31.551 UTC [50] LOG:  shutting down
+infra-validate	Stop containers	2025-09-12T19:46:36.9194361Z  2025-09-12 19:45:31.560 UTC [48] LOG:  database system is shut down
+infra-validate	Stop containers	2025-09-12T19:46:36.9194638Z   done
+infra-validate	Stop containers	2025-09-12T19:46:36.9194791Z  server stopped
+infra-validate	Stop containers	2025-09-12T19:46:36.9194947Z  
+infra-validate	Stop containers	2025-09-12T19:46:36.9195152Z  PostgreSQL init process complete; ready for start up.
+infra-validate	Stop containers	2025-09-12T19:46:36.9195408Z  
+infra-validate	Stop containers	2025-09-12T19:46:36.9200929Z Stop and remove container: 72c92abf46a142edb0aa1499ac9154ce_postgres14_c84e2b
+infra-validate	Stop containers	2025-09-12T19:46:36.9205880Z ##[command]/usr/bin/docker rm --force 254bf03db272f5d46b4ae6ae9bf41f62347ddab3c436a2b97c60c73715c5ef16
+infra-validate	Stop containers	2025-09-12T19:46:37.1201662Z 254bf03db272f5d46b4ae6ae9bf41f62347ddab3c436a2b97c60c73715c5ef16
+infra-validate	Stop containers	2025-09-12T19:46:37.1224495Z Print service container logs: b28d0a8259a14c49a1aa2855e09b23c3_redis6_de06b9
+infra-validate	Stop containers	2025-09-12T19:46:37.1225687Z ##[command]/usr/bin/docker logs --details 4944bb789d2dc7aa902ff598f14e4302cab98a3378b818ec89dc03f0e03b72b6
+infra-validate	Stop containers	2025-09-12T19:46:37.1363813Z  1:C 12 Sep 2025 19:45:34.379 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+infra-validate	Stop containers	2025-09-12T19:46:37.1364708Z  1:C 12 Sep 2025 19:45:34.379 # Redis version=6.2.19, bits=64, commit=00000000, modified=0, pid=1, just started
+infra-validate	Stop containers	2025-09-12T19:46:37.1365679Z  1:C 12 Sep 2025 19:45:34.379 # Warning: no config file specified, using the default config. In order to specify a config file use redis-server /path/to/redis.conf
+infra-validate	Stop containers	2025-09-12T19:46:37.1366397Z  1:M 12 Sep 2025 19:45:34.379 * monotonic clock: POSIX clock_gettime
+infra-validate	Stop containers	2025-09-12T19:46:37.1366806Z  1:M 12 Sep 2025 19:45:34.380 * Running mode=standalone, port=6379.
+infra-validate	Stop containers	2025-09-12T19:46:37.1367152Z  1:M 12 Sep 2025 19:45:34.380 # Server initialized
+infra-validate	Stop containers	2025-09-12T19:46:37.1368871Z  1:M 12 Sep 2025 19:45:34.380 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+infra-validate	Stop containers	2025-09-12T19:46:37.1370548Z  1:M 12 Sep 2025 19:45:34.380 * Ready to accept connections
+infra-validate	Stop containers	2025-09-12T19:46:37.1376782Z Stop and remove container: b28d0a8259a14c49a1aa2855e09b23c3_redis6_de06b9
+infra-validate	Stop containers	2025-09-12T19:46:37.1377938Z ##[command]/usr/bin/docker rm --force 4944bb789d2dc7aa902ff598f14e4302cab98a3378b818ec89dc03f0e03b72b6
+infra-validate	Stop containers	2025-09-12T19:46:37.2699632Z 4944bb789d2dc7aa902ff598f14e4302cab98a3378b818ec89dc03f0e03b72b6
+infra-validate	Stop containers	2025-09-12T19:46:37.2724908Z Remove container network: github_network_07737735ff914241965820dede7a064e
+infra-validate	Stop containers	2025-09-12T19:46:37.2729149Z ##[command]/usr/bin/docker network rm github_network_07737735ff914241965820dede7a064e
+infra-validate	Stop containers	2025-09-12T19:46:37.4025601Z github_network_07737735ff914241965820dede7a064e
+infra-validate	Complete job	∩╗┐2025-09-12T19:46:37.4086057Z Cleaning up orphan processes
