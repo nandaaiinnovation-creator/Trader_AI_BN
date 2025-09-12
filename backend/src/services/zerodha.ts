@@ -440,18 +440,66 @@ export class ZerodhaService extends EventEmitter {
     return '';
   }
 
+  // Synchronous convenience cleanup kept for callers that don't need to await close
   public cleanup() {
-    if (this.ws) {
-      this.ws.close();
-      this.ws = null;
-    }
+    void this.cleanupAsync().catch((err) => {
+      logger.warn({ message: 'cleanup() encountered error', err });
+    });
+  }
+
+  // Proper async cleanup that ensures timers are cleared, listeners removed,
+  // and the WebSocket is closed and awaited. Tests should call this.
+  public async cleanupAsync(): Promise<void> {
+    // Clear heartbeat timer
     if (this.heartbeatTimer) {
       clearInterval(this.heartbeatTimer);
       this.heartbeatTimer = null;
     }
+
+    // Clear reconnect timer
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
+    }
+
+    // Remove subscribed tokens to avoid accidental sends
+    this.subscribedTokens.clear();
+
+    // Close websocket and await close event
+    if (this.ws) {
+      try {
+        await new Promise<void>((resolve) => {
+          // Remove message listeners to avoid re-entrancy while closing
+          try { this.ws?.removeAllListeners('message'); } catch (e) {}
+          try { this.ws?.removeAllListeners('open'); } catch (e) {}
+          try { this.ws?.removeAllListeners('error'); } catch (e) {}
+          try { this.ws?.removeAllListeners('close'); } catch (e) {}
+
+          // If already closed, resolve immediately
+          if (this.ws?.readyState !== WebSocket.OPEN && this.ws?.readyState !== WebSocket.CONNECTING) {
+            try { this.ws?.terminate(); } catch (e) {}
+            this.ws = null;
+            return resolve();
+          }
+
+          this.ws?.once('close', () => {
+            this.ws = null;
+            resolve();
+          });
+
+          try {
+            this.ws?.close();
+          } catch (e) {
+            try { this.ws?.terminate(); } catch (er) {}
+            this.ws = null;
+            resolve();
+          }
+        });
+      } catch (err) {
+        logger.warn({ message: 'Error while closing Zerodha WebSocket in cleanupAsync', err });
+        try { this.ws?.terminate(); } catch (e) {}
+        this.ws = null;
+      }
     }
   }
 }
