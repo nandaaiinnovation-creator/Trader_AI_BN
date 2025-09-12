@@ -1,0 +1,22 @@
+#!/bin/sh
+# Husky pre-push hook: block pushes by default to prevent noisy commits being pushed.
+# To allow a push for a one-off operation, set the environment variable ALLOW_PUSH=1
+# or enable with: git config hooks.allowPush true
+
+# Respect explicit environment override
+if [ "${ALLOW_PUSH}" = "1" ]; then
+  exit 0
+fi
+
+# Respect a persistent git config override
+ALLOW_CONFIG=$(git config --bool hooks.allowPush 2>/dev/null || echo "false")
+if [ "${ALLOW_CONFIG}" = "true" ]; then
+  exit 0
+fi
+
+echo "\nPush blocked by .husky/pre-push: pushes are disabled by default to avoid noisy updates."
+echo "If you really want to push, run one of the following:\n"
+echo "  - One-off (temporary): ALLOW_PUSH=1 git push"
+echo "  - Persistent (opt-in): git config hooks.allowPush true && git push"
+echo "\nAlternatively, ask the maintainer to enable pushing from CI or provide a reviewer-approved branch.\n"
+exit 1
