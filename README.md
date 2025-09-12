@@ -135,3 +135,30 @@ MIT
 Decision: the JSON Schema validator (`ajv`) is intentionally kept in `backend/devDependencies` because the validator script `backend/scripts/validate-defaults.js` is backend-scoped and CI runs it from the `backend` directory. Keeping the dependency local to `backend` makes installs lighter for contributors who only work on docs or other top-level parts of the repo.
 
 If you'd like to centralize dev tooling (move `ajv` to the repo root), open an issue or PR; I'll help migrate CI and scripts accordingly.
+
+## Milestone publish workflow
+
+We follow a quiet, milestone-driven publish process to avoid noisy incremental pushes and keep history clean.
+
+- To mark a milestone as ready for publish, create an empty file at the repo root named `.milestone_done` or set `PUBLISH_MILESTONE=1` in your environment.
+- To publish the current branch and create a draft PR (uses `gh` GitHub CLI):
+
+```powershell
+# one-time: ensure dependencies are installed
+npm ci
+
+# run local checks (lint/tests/validate)
+npm run lint
+cd backend; npm test; npm run validate:defaults; cd -
+
+# create .milestone_done (or set PUBLISH_MILESTONE=1)
+New-Item -Path . -Name .milestone_done -ItemType File
+
+# run the publish script (creates a draft PR targeting 'develop')
+npm run publish:milestone
+```
+
+Notes:
+- The script will push the branch (bypassing pre-push hook temporarily) and create a draft PR using `gh pr create --draft` with the first `PR_DRAFT_*.md` file as the PR body.
+- The script requires `gh` to be installed and authenticated. It is intentionally conservative: it refuses to run unless `.milestone_done` exists or `PUBLISH_MILESTONE=1` is set. This prevents accidental publishes.
+
