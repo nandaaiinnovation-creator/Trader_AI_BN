@@ -13,6 +13,7 @@ This file tracks the stabilization work for the `feature/signal-orchestrator` br
 
 Next steps
 - Open PR draft to consolidate changes and invite reviewers.
+ - PR #17 has been marked ready for review; assign backend/test owners as reviewers.
 - Consider adding `ZERODHA_SILENCE_PARSE=true` to CI workflow env if we want absolute suppression in non-test job contexts.
 - Optionally add buffer-length validation in `parseBinaryTick` if production data shows real parser errors.
 
