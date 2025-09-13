@@ -209,8 +209,7 @@ export class RulesEngine {
 
   // Helper methods for rules to use
   public static getCandleDirection(candles: CandleData[], lookback: number = 3): 'up' | 'down' | 'sideways' {
-    const subset = candles.slice(-lookback);
-    const closes = subset.map(c => c.close);
+  const subset = candles.slice(-lookback);
     const highs = subset.map(c => c.high);
     const lows = subset.map(c => c.low);
 

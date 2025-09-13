@@ -50,6 +50,16 @@ jobs:
           ZERODHA_ENABLE_WS: 'false'
         run: npm ci
         working-directory: ./backend
+      - name: Run linter
+        working-directory: ./backend
+        run: |
+          set -e
+          npm run lint
+      - name: Run TypeScript typecheck
+        working-directory: ./backend
+        run: |
+          set -e
+          npm run typecheck
       - name: Validate config defaults
         working-directory: ./backend
         run: |

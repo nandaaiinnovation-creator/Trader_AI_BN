@@ -43,6 +43,12 @@ Keep a short, up-to-date summary of project progress and the current milestone. 
 - CI workflows: PR-only unit-test workflow and manual integration runner created.
 - Documentation: `backend/docs/zerodha-refresh-handler.md`, `backend/docs/integration-tests.md`, and `backend/examples/refresh-handler.example.ts` added.
 
+### Recent PR update (Signal Orchestrator)
+
+- PR #17 (feature/signal-orchestrator) implements an opt-in `SignalOrchestrator` service, a non-blocking `RulesEngine` hook, and scoped lint fixes. PR-level CI (typecheck + PR workflows) passed and local checks (lint/typecheck/tests) passed. PR remains Draft per project policy.
+- The orchestrator is wired into `src/index.ts` behind feature flag `ENABLE_SIGNAL_ORCHESTRATOR=true` and exposed via `src/services/orchestratorSingleton.ts` for optional injection.
+- An integration test `tests/integration/orchestrator.integration.test.ts` was added to validate persist+emit behavior with a mocked `io` and `typeorm` repository.
+
 ---
 
 ### Acceptance Criteria (project-wide)
