@@ -1,44 +1,19 @@
-name: CI - Unit Tests
-
-on:
-  pull_request:
-    branches: [ main, master ]
-
-jobs:
-  unit-tests:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - uses: actions/checkout@v4
-      - name: Use Node.js 18
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-      - name: Install dependencies
-        run: |
-          cd backend
-          npm ci
-      - name: Run unit tests only
-        run: |
-          cd backend
-          npm test --silent -- --testPathIgnorePatterns=/tests/integration/
-        env:
-          CI: true
-name: CI
+﻿name: CI
 
 on:
   push:
-    branches: [ main, 'tests/**', 'cleanup/**' ]
+    branches: [ main, 'feature/**', 'tests/**', 'cleanup/**' ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch: {}
   schedule:
     - cron: '0 2 * * *' # daily at 02:00 UTC
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    env:
+      ZERODHA_SILENCE_PARSE: 'true'
     steps:
       - uses: actions/checkout@v4
       - name: Use Node.js 18
@@ -50,6 +25,11 @@ jobs:
           ZERODHA_ENABLE_WS: 'false'
         run: npm ci
         working-directory: ./backend
+      - name: Run linter
+        working-directory: ./backend
+        run: |
+          set -e
+          npm run typecheck
       - name: Validate config defaults
         working-directory: ./backend
         run: |
@@ -93,6 +73,8 @@ jobs:
   integration:
     needs: build-and-test
     runs-on: ubuntu-latest
+    env:
+      ZERODHA_SILENCE_PARSE: 'true'
     steps:
       - uses: actions/checkout@v4
       - name: Use Node.js 18
@@ -122,7 +104,6 @@ jobs:
         env:
           NODE_ENV: test
           ZERODHA_ENABLE_WS: 'false'
-        # run Jest from the backend working dir and pass the integration folder as a positional arg
         run: npm run test:ts -- --runInBand tests/integration
         working-directory: ./backend
       - name: Upload integration coverage

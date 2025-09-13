@@ -1,6 +1,9 @@
 import WebSocket, { WebSocketServer } from 'ws';
 import { zerodhaService } from '../../src/services/zerodha';
 
+// centralized teardown helper
+const teardown = require('../helpers/teardown');
+
 // Small helper to build a minimal 'ltp' binary packet as the parser expects
 function buildLtpPacket(instrumentToken: number, price: number) {
   const buffer = Buffer.alloc(2 + 4 + 1 + 4); // numberOfPackets + token + flags + ltp(4)
@@ -27,6 +30,7 @@ describe('ZerodhaService integration (mock WS)', () => {
     if (wss) {
       await new Promise<void>((resolve) => wss.close(() => resolve()));
     }
+    await teardown();
   });
 
   test('parses ltp packet and emits tick', async () => {

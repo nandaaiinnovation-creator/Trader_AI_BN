@@ -14,9 +14,8 @@ Keep a short, up-to-date summary of project progress and the current milestone. 
 
 **Summary**: Ongoing development. Core backend and rules engine are implemented. Current work focuses on making the Zerodha adapter CI-safe (test hooks, deterministic integration tests), repo hygiene after a force-push, and CI/publish safeguards.
 
-**Last Updated**: 2025-09-12
 **Last Updated**: 2025-09-13
-**% Complete**: 100%
+**% Complete**: 40%
 
 ---
 
@@ -26,9 +25,9 @@ Keep a short, up-to-date summary of project progress and the current milestone. 
 |-------|-------------|--------|
 | Base Infrastructure | Docker, DB, Redis, migrations | ✅ Done |
 | Zerodha Integration | OAuth, WS adapter, tokens, test harness | ✅ Done |
-| Base Infrastructure | Docker, DB, Redis, migrations | � In Progress |
+| Signal Generation | Composite signals, DB, WS broadcast | 🟧 In Progress |
 | Rules Engine | Implement 47 rules, config persistence | ⬜ Pending |
-| Signal Generation | Composite signals, DB, WS broadcast | ⬜ Pending |
+| Signal Generation | Composite signals, DB, WS broadcast | 🟧 In Progress |
 | Frontend Dashboard | Charts, rules panel, signal feed | ⬜ Pending |
 | Backtesting | Modes, metrics, visualization | ⬜ Pending |
 | Sentiment Module | API connectors, filters | ⬜ Pending |
@@ -43,6 +42,36 @@ Keep a short, up-to-date summary of project progress and the current milestone. 
 - Integration tests (safe, in-process mock `ws`): Added and passing locally; integration tests excluded from PR CI by default and run via manual workflow.
 - CI workflows: PR-only unit-test workflow and manual integration runner created.
 - Documentation: `backend/docs/zerodha-refresh-handler.md`, `backend/docs/integration-tests.md`, and `backend/examples/refresh-handler.example.ts` added.
+
+### Recent PR update (Signal Orchestrator)
+
+- PR #17 (feature/signal-orchestrator) implements an opt-in `SignalOrchestrator` service, a non-blocking `RulesEngine` hook, and scoped lint fixes. PR-level CI (typecheck + PR workflows) passed and local checks (lint/typecheck/tests) passed. PR remains Draft per project policy.
+- The orchestrator is wired into `src/index.ts` behind feature flag `ENABLE_SIGNAL_ORCHESTRATOR=true` and exposed via `src/services/orchestratorSingleton.ts` for optional injection.
+- An integration test `tests/integration/orchestrator.integration.test.ts` was added to validate persist+emit behavior with a mocked `io` and `typeorm` repository.
+
+- Wiring orchestrator milestone: In Progress (2025-09-13)
+
+### Reviewer Checklist (mirror of PR template)
+
+- Code Quality & Design: cohesive, SRP, optional integration, descriptive naming, adequate tests.
+- Safety & Non-Regression: feature runs disabled by default, handles missing infra, side effects mocked.
+- Repo Hygiene: correct directories, imports clean, lint/typecheck/tests pass, no debug artifacts.
+- Documentation & Tracking: `STATUS.md` updated, PR describes scope and next steps.
+
+---
+
+### Acceptance Criteria (project-wide)
+
+- Acceptance criteria: `lint` and `typecheck` must pass in CI. Typecheck is a strict gate (`tsc --noEmit`), while lint is allowed to report warnings for legacy issues until the backlog item to tighten linting is completed.
+
+### Tech Debt / Backlog
+
+- Re-enable `--max-warnings=0` in ESLint and fix all legacy lint violations. This is a medium-term effort that should be tracked as a separate milestone.
+- Evaluate bumping `engines.node` from `18` → `22` once CI and local environments are aligned. Update CI and `engines` only after verification across the team.
+
+### Node / CI runtime note
+
+- Project runs on Node `18.x` in CI (GitHub Actions workflows are pinned to Node 18). Local Node `22.x` may work but is not guaranteed; developers should prefer Node 18 for parity with CI.
 
 Blocking items before publishing this milestone (per repo policy):
 
@@ -79,10 +108,8 @@ Milestone policy (short):
 - [x] CI: PR unit-tests + manual integration workflow added
 - [x] Docs: backend docs and examples added
 - [x] Create `PR_DRAFT_ZERODHA_LIVE_INTEGRATION.md` in repo root
-- [ ] Confirm and commit `backend/package-lock.json` if dependencies changed
-- [ ] Final TODO/placeholder sweep
 - [x] Confirm and commit `backend/package-lock.json` if dependencies changed
-- [x] Final TODO/placeholder sweep
+- [ ] Final TODO/placeholder sweep
 
 ---
 

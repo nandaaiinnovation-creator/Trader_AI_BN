@@ -223,12 +223,19 @@ export class ZerodhaService extends EventEmitter {
       this.emit('tick', packet);
 
     } catch (err) {
-    logger.error({ message: 'Failed to handle tick', err });
+    // Avoid noisy error logs during tests; allow opt-in silence via env
+    if (process.env.NODE_ENV === 'test' || process.env.ZERODHA_SILENCE_PARSE === 'true') {
+      try { logger.debug({ message: 'Failed to handle tick (suppressed in test)', err }); } catch (e) {}
+    } else {
+      logger.error({ message: 'Failed to handle tick', err });
+    }
     }
   }
 
   private parseBinaryTick(data: Buffer): KiteTick | null {
     try {
+      // Defensive checks: ensure buffer has expected minimum lengths before reads
+      if (!Buffer.isBuffer(data) || data.length < 2) return null;
       // Packet header (2 bytes)
       const numberOfPackets = data.readUInt16BE(0);
       let index = 2;
@@ -249,6 +256,8 @@ export class ZerodhaService extends EventEmitter {
 
         // Parse based on mode
         if (mode === 'ltp') {
+          // ltp requires 4 bytes for float
+          if (data.length < index + 4) return null;
           return {
             mode,
             instrumentToken,
@@ -256,6 +265,8 @@ export class ZerodhaService extends EventEmitter {
             lastPrice: data.readFloatBE(index)
           };
         } else if (mode === 'quote' || mode === 'full') {
+          // quote/full require at least 40 bytes of data for base fields
+          if (data.length < index + 40) return null;
           const tick: KiteTick = {
             mode,
             instrumentToken,
@@ -275,10 +286,13 @@ export class ZerodhaService extends EventEmitter {
           if (mode === 'full') {
             // Parse OI data if available
             if (flags & 0x04) {
+              if (data.length < index + 44) return tick;
               tick.oi = data.readUInt32BE(index + 40);
               if (flags & 0x08) {
-                tick.oiHigh = data.readUInt32BE(index + 44);
-                tick.oiLow = data.readUInt32BE(index + 48);
+                if (data.length >= index + 48) {
+                  tick.oiHigh = data.readUInt32BE(index + 44);
+                  tick.oiLow = data.readUInt32BE(index + 48);
+                }
               }
             }
 
@@ -288,9 +302,11 @@ export class ZerodhaService extends EventEmitter {
                 buy: [],
                 sell: []
               };
-              
+
               let depthIndex = index + 52;
               for (let j = 0; j < 5; j++) {
+                // Ensure we have enough bytes for a depth row (12 bytes)
+                if (data.length < depthIndex + 12) break;
                 // Buy depth
                 tick.depth.buy.push({
                   price: data.readFloatBE(depthIndex),
@@ -299,6 +315,8 @@ export class ZerodhaService extends EventEmitter {
                 });
                 depthIndex += 12;
 
+                // Ensure we have enough bytes for sell depth
+                if (data.length < depthIndex + 12) break;
                 // Sell depth
                 tick.depth.sell.push({
                   price: data.readFloatBE(depthIndex),
@@ -314,7 +332,15 @@ export class ZerodhaService extends EventEmitter {
         }
       }
     } catch (err) {
-    logger.error({ message: 'Failed to parse binary tick', err });
+    // During tests small/incomplete buffers are intentionally fed to the parser
+    // and can produce RangeError diagnostics. Avoid noisy error-level logs in
+    // test runs; record at debug level instead or allow explicit opt-in via
+    // ZERODHA_SILENCE_PARSE env var.
+    if (process.env.NODE_ENV === 'test' || process.env.ZERODHA_SILENCE_PARSE === 'true') {
+      try { logger.debug({ message: 'Failed to parse binary tick (suppressed in test)', err }); } catch (e) {}
+    } else {
+      logger.error({ message: 'Failed to parse binary tick', err });
+    }
     }
     return null;
   }
