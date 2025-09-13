@@ -33,17 +33,27 @@ test('orchestrator persists signal and emits socket event', async () => {
   // Give orchestrator time to pick it up and persist
   await new Promise(r => setTimeout(r, 4000));
 
+  // Connect a Socket.IO client to listen for the emitted signal
+  const ioClient = require('socket.io-client');
+  const socket = ioClient.connect(`http://localhost:${env.PORT || 8080}`, { transports: ['websocket'], reconnection: false });
+  const received = [];
+  socket.on('signal', (payload) => {
+    try { received.push(payload); } catch (e) {}
+  });
+
   // Check Postgres for inserted row
   const client = new Client({ connectionString: env.POSTGRES_URL });
   await client.connect();
   const res = await client.query("SELECT * FROM signals WHERE rule = 'integration-test' ORDER BY created_at DESC LIMIT 1");
   await client.end();
 
+  // Clean up socket
+  socket.disconnect();
   proc.kill();
 
   expect(res.rows.length).toBeGreaterThanOrEqual(1);
 
-  // Optionally check emit file
-  // const emitted = fs.existsSync(tmpEmitFile) ? fs.readFileSync(tmpEmitFile,'utf8') : '';
-  // expect(emitted).toContain('integration-test');
+  // Check that a signal event containing our rule was emitted
+  const foundEmit = received.some(r => r && (r.rule === 'integration-test' || (r.firedRules && JSON.stringify(r.firedRules).includes('integration-test')) || (r.symbol && r.symbol.includes('TEST/BNF'))));
+  expect(foundEmit).toBeTruthy();
 });
