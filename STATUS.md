@@ -49,6 +49,8 @@ Keep a short, up-to-date summary of project progress and the current milestone. 
 - The orchestrator is wired into `src/index.ts` behind feature flag `ENABLE_SIGNAL_ORCHESTRATOR=true` and exposed via `src/services/orchestratorSingleton.ts` for optional injection.
 - An integration test `tests/integration/orchestrator.integration.test.ts` was added to validate persist+emit behavior with a mocked `io` and `typeorm` repository.
 
+- Wiring orchestrator milestone: In Progress (2025-09-13)
+
 ### Reviewer Checklist (mirror of PR template)
 
 - Code Quality & Design: cohesive, SRP, optional integration, descriptive naming, adequate tests.
