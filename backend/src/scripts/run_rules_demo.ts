@@ -1,5 +1,6 @@
 import defaultConfig from '../config/rules';
 import { RulesEngine } from '../services/rulesEngine';
+import { getOrchestrator } from '../services/orchestratorSingleton';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -8,7 +9,7 @@ async function main() {
   const raw = fs.readFileSync(samplePath, 'utf8');
   const candles = JSON.parse(raw) as any[];
 
-  const engine = new RulesEngine(defaultConfig as any);
+  const engine = new RulesEngine(defaultConfig as any, getOrchestrator());
 
   const context = {
     symbol: 'BANKNIFTY',

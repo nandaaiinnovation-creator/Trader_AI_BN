@@ -1,8 +1,9 @@
-import { TradingRegime, RuleContext, RuleResult, CandleData } from '../types/rules';
+import { RuleContext, RuleResult, CandleData } from '../types/rules';
 import { BaseRule, RuleErrorType } from './rules/base';
 import { RulesConfig } from '../config/rules';
 import { logger } from '../utils/logger';
 import { redisClient } from '../utils/helpers';
+import SignalOrchestrator from './signalOrchestrator';
 
 // Allow Node-style require in mixed TS/JS runtime
 declare const require: any;
@@ -12,9 +13,11 @@ export class RulesEngine {
   private rules: Map<string, BaseRule> = new Map();
   private config: RulesConfig;
   private lastSignalTime: Map<string, number> = new Map();
+  private orchestrator?: SignalOrchestrator;
   
-  constructor(config: RulesConfig) {
+  constructor(config: RulesConfig, orchestrator?: SignalOrchestrator) {
     this.config = config;
+    this.orchestrator = orchestrator;
     this.initializeRules();
   }
 
@@ -22,11 +25,11 @@ export class RulesEngine {
     // Load and instantiate all rule classes dynamically.
     // Support webpack's require.context if available, otherwise fall back to Node fs-based loader.
     try {
-      // @ts-ignore - require.context may be injected by bundlers
+      // require.context may be present in some bundlers; prefer dynamic context when available
       if (typeof (require as any).context === 'function') {
         const ruleFiles = (require as any).context('./rules', false, /\.ts$/);
         ruleFiles.keys().forEach((key: string) => {
-    const ruleName = key.replace('./', '').replace('.ts', '');
+          const ruleName = key.replace('./', '').replace('.ts', '');
           if (ruleName === 'base') return;
           const RuleClass = ruleFiles(key).default;
           const cfg = (this.config as any).rules ? (this.config as any).rules[ruleName] : (this.config as any)[ruleName];
@@ -90,7 +93,7 @@ export class RulesEngine {
     let totalWeight = 0;
 
   // Apply regime-specific weights
-  const weights = (this.config as any).regimeWeights ? (this.config as any).regimeWeights[context.regime] : {};
+    const weights = (this.config as any).regimeWeights ? (this.config as any).regimeWeights[context.regime] : {};
 
     // Evaluate each enabled rule
     for (const [ruleName, rule] of this.rules) {
@@ -139,10 +142,31 @@ export class RulesEngine {
     // Generate signal if threshold met
     let signal: 'BUY' | 'SELL' | null = null;
   const signalThreshold = compositeCfg && compositeCfg.params && compositeCfg.params.signal_threshold ? compositeCfg.params.signal_threshold : 0.5;
-  if (normalizedScore >= signalThreshold) {
+    if (normalizedScore >= signalThreshold) {
       signal = this.determineDirection(context, results);
       if (signal) {
         this.lastSignalTime.set(symbol, now);
+      }
+    }
+
+    // Non-blocking: forward to orchestrator if configured
+    if (signal && this.orchestrator) {
+      const payload = {
+        symbol: symbol,
+        timeframe: context.timeframe,
+        signal,
+        score: normalizedScore,
+        firedRules: results,
+        timestamp: now,
+      };
+      // don't await, but log on error
+      try {
+        // explicit any cast avoided; orchestrator accepts a compatible shape
+        this.orchestrator.handle(payload as any).catch((err: any) => {
+          try { logger.warn(`orchestrator.handle failed: ${err && err.message ? err.message : String(err)}`); } catch (e) { /* noop */ }
+        });
+      } catch (err: any) {
+        logger.warn({ message: 'Failed to forward to orchestrator', err: err && err.message ? err.message : String(err) });
       }
     }
 
@@ -185,8 +209,7 @@ export class RulesEngine {
 
   // Helper methods for rules to use
   public static getCandleDirection(candles: CandleData[], lookback: number = 3): 'up' | 'down' | 'sideways' {
-    const subset = candles.slice(-lookback);
-    const closes = subset.map(c => c.close);
+  const subset = candles.slice(-lookback);
     const highs = subset.map(c => c.high);
     const lows = subset.map(c => c.low);
 

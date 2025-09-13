@@ -1,5 +1,8 @@
 # BankNifty Signals — Repository README
 
+<!-- CI status badge -->
+[![CI](https://github.com/nandaaiinnovation-creator/Trader_AI_BN/actions/workflows/ci.yml/badge.svg)](https://github.com/nandaaiinnovation-creator/Trader_AI_BN/actions/workflows/ci.yml)
+
 This repository contains the backend and frontend for a BankNifty trading signals workstation. The repo uses a milestone-driven workflow: milestones are advanced by creating code/config/docs changes, validating lightweight checks locally, and letting CI perform full infra validation.
 
 Local developer workflow (allowed):

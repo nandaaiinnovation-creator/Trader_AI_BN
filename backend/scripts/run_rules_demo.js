@@ -1,6 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const { RulesEngine } = require('../src/services/rulesEngine');
+// Prefer orchestrator singleton when available so the demo can exercise orchestration
+const { getOrchestrator } = require('../src/services/orchestratorSingleton');
 
 // Load TS rules config as text and extract a minimal runtime config
 function loadRulesConfig() {
@@ -26,7 +28,8 @@ async function main() {
   const raw = fs.readFileSync(samplePath, 'utf8');
   const candles = JSON.parse(raw);
 
-  const engine = new RulesEngine(defaultConfig);
+  // Pass optional orchestrator from the singleton (may be undefined)
+  const engine = new RulesEngine(defaultConfig, getOrchestrator());
 
   const context = {
     symbol: 'BANKNIFTY',

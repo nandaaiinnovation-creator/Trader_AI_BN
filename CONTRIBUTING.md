@@ -1,3 +1,22 @@
+Contributing
+============
+
+Thanks for contributing! This file contains a short note about editing GitHub Actions workflow files safely.
+
+Workflow editing basics
+-----------------------
+- Keep each workflow file as a single YAML document. Do not paste multiple workflow definitions into a single file.
+- Avoid duplicating top-level keys like `name:`, `on:`, or `jobs:` within the same file.
+- When updating workflows, prefer to add `workflow_dispatch` so you can manually trigger a run for verification.
+
+Automated safeguards in this repository
+--------------------------------------
+- There is a `Workflow Lint` job that runs on PRs and `feature/**` pushes: `.github/workflows/workflow-lint.yml`. It runs `yamllint` against `.github/workflows/*.yml` and will fail the PR if any workflow YAML is invalid.
+- We also include a `ci-workflow-guidelines.md` under `.github/workflows/` with quick dos/don'ts.
+
+If you want stricter checks
+--------------------------
+If you prefer stricter validation (schema validation against Actions workflow schema), we also run an `actionlint`-based job (see `.github/workflows/workflow-schema-lint.yml`), which performs a schema + best-practice check of workflow files. If you'd like this tightened further, open a PR and I can help tune it.
 # Contributing
 
 Thanks for contributing! A few guidelines to keep the repo clean and make branch switching painless.
