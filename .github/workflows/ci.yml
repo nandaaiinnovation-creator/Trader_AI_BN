@@ -12,6 +12,8 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    env:
+      ZERODHA_SILENCE_PARSE: 'true'
     steps:
       - uses: actions/checkout@v4
       - name: Use Node.js 18
@@ -71,6 +73,8 @@ jobs:
   integration:
     needs: build-and-test
     runs-on: ubuntu-latest
+    env:
+      ZERODHA_SILENCE_PARSE: 'true'
     steps:
       - uses: actions/checkout@v4
       - name: Use Node.js 18
