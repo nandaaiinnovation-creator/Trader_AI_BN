@@ -2,142 +2,124 @@ name: CI - Unit Tests
 
 on:
   pull_request:
-    branches: [ main, master ]
+  name: CI
 
-jobs:
-  unit-tests:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - uses: actions/checkout@v4
-      - name: Use Node.js 18
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-      - name: Install dependencies
-        run: |
-          cd backend
-          npm ci
-      - name: Run unit tests only
-        run: |
-          cd backend
-          npm test --silent -- --testPathIgnorePatterns=/tests/integration/
-        env:
-          CI: true
-name: CI
+  on:
+    push:
+      branches: [ main, 'tests/**', 'cleanup/**' ]
+    pull_request:
+      branches: [ main ]
+    schedule:
+      - cron: '0 2 * * *' # daily at 02:00 UTC
 
-on:
-  push:
-    branches: [ main, 'tests/**', 'cleanup/**' ]
-  pull_request:
-    branches: [ main ]
-  schedule:
-    - cron: '0 2 * * *' # daily at 02:00 UTC
+  jobs:
+    build-and-test:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - name: Use Node.js 18
+          uses: actions/setup-node@v4
+          with:
+            node-version: 18
+        - name: Install dependencies
+          env:
+            ZERODHA_ENABLE_WS: 'false'
+          run: npm ci
+          working-directory: ./backend
+        - name: Run linter
+          name: CI
+          run: |
+          on:
+            push:
+              branches: [ main, 'feature/**', 'tests/**', 'cleanup/**' ]
+            pull_request:
+              branches: [ main ]
+            workflow_dispatch: {}
+            schedule:
+              - cron: '0 2 * * *' # daily at 02:00 UTC
+          working-directory: ./backend
+          run: |
+            set -e
+            npm run typecheck
+        - name: Validate config defaults
+          working-directory: ./backend
+          run: |
+            set -e
+            npm run validate:defaults
+        - name: Fail on high/critical npm audit findings
+          working-directory: ./backend
+          run: |
+            set -e
+            npm audit --production --json > audit.json || true
+            jq '.metadata.vulnerabilities' audit.json > vulnerabilities.json || true
+            HIGH=$(jq '.high' vulnerabilities.json)
+            CRITICAL=$(jq '.critical' vulnerabilities.json)
+            echo "Vulnerabilities: high=$HIGH critical=$CRITICAL"
+            if [ "$HIGH" -gt 0 ] || [ "$CRITICAL" -gt 0 ]; then
+              cat audit.json
+              echo "Failing due to high/critical npm audit findings"
+              exit 1
+            fi
+        - name: Build (TypeScript)
+          run: npm run build
+          working-directory: ./backend
+        - name: Run tests
+          env:
+            ZERODHA_ENABLE_WS: 'false'
+          run: npm run test:ts -- --runInBand
+          working-directory: ./backend
+        - name: Upload dist artifact
+          if: always()
+          uses: actions/upload-artifact@v4
+          with:
+            name: backend-dist
+            path: ./backend/dist
+        - name: Upload coverage artifact
+          if: always()
+          uses: actions/upload-artifact@v4
+          with:
+            name: backend-coverage
+            path: ./backend/coverage
 
-jobs:
-  build-and-test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Use Node.js 18
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-      - name: Install dependencies
-        env:
-          ZERODHA_ENABLE_WS: 'false'
-        run: npm ci
-        working-directory: ./backend
-      - name: Run linter
-        working-directory: ./backend
-        run: |
-          set -e
-          npm run lint
-      - name: Run TypeScript typecheck
-        working-directory: ./backend
-        run: |
-          set -e
-          npm run typecheck
-      - name: Validate config defaults
-        working-directory: ./backend
-        run: |
-          set -e
-          npm run validate:defaults
-      - name: Fail on high/critical npm audit findings
-        working-directory: ./backend
-        run: |
-          set -e
-          npm audit --production --json > audit.json || true
-          jq '.metadata.vulnerabilities' audit.json > vulnerabilities.json || true
-          HIGH=$(jq '.high' vulnerabilities.json)
-          CRITICAL=$(jq '.critical' vulnerabilities.json)
-          echo "Vulnerabilities: high=$HIGH critical=$CRITICAL"
-          if [ "$HIGH" -gt 0 ] || [ "$CRITICAL" -gt 0 ]; then
-            cat audit.json
-            echo "Failing due to high/critical npm audit findings"
-            exit 1
-          fi
-      - name: Build (TypeScript)
-        run: npm run build
-        working-directory: ./backend
-      - name: Run tests
-        env:
-          ZERODHA_ENABLE_WS: 'false'
-        run: npm run test:ts -- --runInBand
-        working-directory: ./backend
-      - name: Upload dist artifact
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: backend-dist
-          path: ./backend/dist
-      - name: Upload coverage artifact
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: backend-coverage
-          path: ./backend/coverage
-
-  integration:
-    needs: build-and-test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Use Node.js 18
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-      - name: Install dependencies
-        env:
-          ZERODHA_ENABLE_WS: 'false'
-        run: npm ci
-        working-directory: ./backend
-      - name: Fail on high/critical npm audit findings
-        working-directory: ./backend
-        run: |
-          set -e
-          npm audit --production --json > audit.json || true
-          jq '.metadata.vulnerabilities' audit.json > vulnerabilities.json || true
-          HIGH=$(jq '.high' vulnerabilities.json)
-          CRITICAL=$(jq '.critical' vulnerabilities.json)
-          echo "Vulnerabilities: high=$HIGH critical=$CRITICAL"
-          if [ "$HIGH" -gt 0 ] || [ "$CRITICAL" -gt 0 ]; then
-            cat audit.json
-            echo "Failing due to high/critical npm audit findings"
-            exit 1
-          fi
-      - name: Run integration tests (mock WS)
-        env:
-          NODE_ENV: test
-          ZERODHA_ENABLE_WS: 'false'
-        # run Jest from the backend working dir and pass the integration folder as a positional arg
-        run: npm run test:ts -- --runInBand tests/integration
-        working-directory: ./backend
-      - name: Upload integration coverage
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: backend-integration-coverage
-          path: ./backend/coverage
+    integration:
+      needs: build-and-test
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - name: Use Node.js 18
+          uses: actions/setup-node@v4
+          with:
+            node-version: 18
+        - name: Install dependencies
+          env:
+            ZERODHA_ENABLE_WS: 'false'
+          run: npm ci
+          working-directory: ./backend
+        - name: Fail on high/critical npm audit findings
+          working-directory: ./backend
+          run: |
+            set -e
+            npm audit --production --json > audit.json || true
+            jq '.metadata.vulnerabilities' audit.json > vulnerabilities.json || true
+            HIGH=$(jq '.high' vulnerabilities.json)
+            CRITICAL=$(jq '.critical' vulnerabilities.json)
+            echo "Vulnerabilities: high=$HIGH critical=$CRITICAL"
+            if [ "$HIGH" -gt 0 ] || [ "$CRITICAL" -gt 0 ]; then
+              cat audit.json
+              echo "Failing due to high/critical npm audit findings"
+              exit 1
+            fi
+        - name: Run integration tests (mock WS)
+          env:
+            NODE_ENV: test
+            ZERODHA_ENABLE_WS: 'false'
+          # run Jest from the backend working dir and pass the integration folder as a positional arg
+          run: npm run test:ts -- --runInBand tests/integration
+          working-directory: ./backend
+        - name: Upload integration coverage
+          if: always()
+          uses: actions/upload-artifact@v4
+          with:
+            name: backend-integration-coverage
+            path: ./backend/coverage
+                ZERODHA_ENABLE_WS: 'false'
