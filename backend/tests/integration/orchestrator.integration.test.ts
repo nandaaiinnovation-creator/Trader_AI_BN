@@ -4,7 +4,7 @@ jest.mock('typeorm', () => ({
 
 import { RulesEngine } from '../../src/services/rulesEngine';
 import defaultConfig from '../../src/config/rules';
-import { setOrchestrator } from '../../src/services/orchestratorSingleton';
+import { setOrchestrator, getOrchestrator } from '../../src/services/orchestratorSingleton';
 import SignalOrchestrator from '../../src/services/signalOrchestrator';
 import { getRepository } from 'typeorm';
 
@@ -31,7 +31,7 @@ describe('Orchestrator integration', () => {
     if (!cfg.rules) cfg.rules = {};
     cfg.rules.compositeScore = { params: { signal_threshold: 0.1, cooldown_bars: 0 } };
 
-    const engine = new RulesEngine(cfg as any, undefined);
+  new RulesEngine(cfg as any, getOrchestrator());
 
     // Construct a context where rules array is minimal; since rules may be many,
     // directly call orchestrator via singleton path by simulating a generated signal
@@ -44,11 +44,12 @@ describe('Orchestrator integration', () => {
       timestamp: Date.now(),
     };
 
-    // get singleton orchestrator and exercise it
-    const orch = require('../../src/services/orchestratorSingleton').getOrchestrator();
-    expect(orch).toBeDefined();
-    // Call handle which should attempt persist then emit
-    await orch.handle(payload as any);
+  // get singleton orchestrator and exercise it
+  const orch = getOrchestrator();
+  expect(orch).toBeDefined();
+  if (!orch) throw new Error('orchestrator not installed');
+  // Call handle which should attempt persist then emit
+  await orch.handle(payload as any);
 
     expect(fakeCreate).toHaveBeenCalled();
     expect(fakeSave).toHaveBeenCalled();

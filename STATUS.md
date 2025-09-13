@@ -49,6 +49,13 @@ Keep a short, up-to-date summary of project progress and the current milestone. 
 - The orchestrator is wired into `src/index.ts` behind feature flag `ENABLE_SIGNAL_ORCHESTRATOR=true` and exposed via `src/services/orchestratorSingleton.ts` for optional injection.
 - An integration test `tests/integration/orchestrator.integration.test.ts` was added to validate persist+emit behavior with a mocked `io` and `typeorm` repository.
 
+### Reviewer Checklist (mirror of PR template)
+
+- Code Quality & Design: cohesive, SRP, optional integration, descriptive naming, adequate tests.
+- Safety & Non-Regression: feature runs disabled by default, handles missing infra, side effects mocked.
+- Repo Hygiene: correct directories, imports clean, lint/typecheck/tests pass, no debug artifacts.
+- Documentation & Tracking: `STATUS.md` updated, PR describes scope and next steps.
+
 ---
 
 ### Acceptance Criteria (project-wide)

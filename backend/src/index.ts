@@ -2,7 +2,6 @@ import 'reflect-metadata';
 import 'reflect-metadata';
 import express, { Request, Response } from 'express';
 import http from 'http';
-import cors from 'cors';
 import { Server } from 'socket.io';
 import { createConnection } from 'typeorm';
 import { redisClient } from './utils/helpers';
@@ -43,7 +42,9 @@ export async function start() {
     setupWebSocket(io);
 
     // Wire optional SignalOrchestrator behind feature flag
-    if (process.env.ENABLE_SIGNAL_ORCHESTRATOR === 'true') {
+    // Backwards-compatible env check: support either ENABLE_SIGNAL_ORCHESTRATOR or ENABLE_ORCHESTRATOR
+    const enableOrch = process.env.ENABLE_ORCHESTRATOR === '1' || process.env.ENABLE_SIGNAL_ORCHESTRATOR === 'true';
+    if (enableOrch) {
       const orch = new SignalOrchestrator(io);
       setOrchestrator(orch);
       logger.info('SignalOrchestrator enabled');
