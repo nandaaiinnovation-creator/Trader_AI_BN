@@ -6,7 +6,7 @@ export interface OrchestratorPayload {
   timeframe: string;
   signal: 'BUY' | 'SELL' | null;
   score: number;
-  firedRules: any[];
+  firedRules: Array<Record<string, unknown>>;
   timestamp: number;
 }
 
@@ -17,7 +17,7 @@ export class SignalOrchestrator {
     this.io = io;
   }
 
-  async persist(payload: OrchestratorPayload) {
+  async persist(payload: OrchestratorPayload): Promise<unknown> {
   // Use entity name to avoid importing entity classes at module load time
   const repo = getRepository('signals');
     const s = repo.create({
@@ -27,11 +27,11 @@ export class SignalOrchestrator {
       score: payload.score,
       fired_rules: JSON.stringify(payload.firedRules || []),
       ts: new Date(payload.timestamp),
-    } as any);
+    });
     return repo.save(s);
   }
 
-  emit(payload: OrchestratorPayload) {
+  emit(payload: OrchestratorPayload): void {
     if (!this.io) return;
     try {
       this.io.emit('signal', {

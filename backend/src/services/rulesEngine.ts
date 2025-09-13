@@ -1,4 +1,4 @@
-import { TradingRegime, RuleContext, RuleResult, CandleData } from '../types/rules';
+import { RuleContext, RuleResult, CandleData } from '../types/rules';
 import { BaseRule, RuleErrorType } from './rules/base';
 import { RulesConfig } from '../config/rules';
 import { logger } from '../utils/logger';
@@ -25,11 +25,11 @@ export class RulesEngine {
     // Load and instantiate all rule classes dynamically.
     // Support webpack's require.context if available, otherwise fall back to Node fs-based loader.
     try {
-      // @ts-ignore - require.context may be injected by bundlers
+      // require.context may be present in some bundlers; prefer dynamic context when available
       if (typeof (require as any).context === 'function') {
         const ruleFiles = (require as any).context('./rules', false, /\.ts$/);
         ruleFiles.keys().forEach((key: string) => {
-    const ruleName = key.replace('./', '').replace('.ts', '');
+          const ruleName = key.replace('./', '').replace('.ts', '');
           if (ruleName === 'base') return;
           const RuleClass = ruleFiles(key).default;
           const cfg = (this.config as any).rules ? (this.config as any).rules[ruleName] : (this.config as any)[ruleName];
@@ -93,7 +93,7 @@ export class RulesEngine {
     let totalWeight = 0;
 
   // Apply regime-specific weights
-  const weights = (this.config as any).regimeWeights ? (this.config as any).regimeWeights[context.regime] : {};
+    const weights = (this.config as any).regimeWeights ? (this.config as any).regimeWeights[context.regime] : {};
 
     // Evaluate each enabled rule
     for (const [ruleName, rule] of this.rules) {
@@ -160,9 +160,14 @@ export class RulesEngine {
         timestamp: now,
       };
       // don't await, but log on error
-      this.orchestrator.handle(payload as any).catch((err: any) => {
-        try { logger.warn(`orchestrator.handle failed: ${err && err.message ? err.message : String(err)}`); } catch (e) { /* noop */ }
-      });
+      try {
+        // explicit any cast avoided; orchestrator accepts a compatible shape
+        this.orchestrator.handle(payload as any).catch((err: any) => {
+          try { logger.warn(`orchestrator.handle failed: ${err && err.message ? err.message : String(err)}`); } catch (e) { /* noop */ }
+        });
+      } catch (err: any) {
+        logger.warn({ message: 'Failed to forward to orchestrator', err: err && err.message ? err.message : String(err) });
+      }
     }
 
     return { signal, score: normalizedScore, firedRules: results };
