@@ -1,0 +1,31 @@
+name: Workflow Lint
+
+on:
+  pull_request:
+  push:
+    branches:
+      - 'feature/**'
+
+jobs:
+  yamllint:
+    name: YAML Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Install yamllint
+        run: |
+          python -m pip install --upgrade pip
+          pip install yamllint
+      - name: Run yamllint on workflow files
+        run: |
+          echo "Running yamllint on .github/workflows/*.yml"
+          set -e
+          for f in .github/workflows/*.yml; do
+            echo "Checking $f";
+            yamllint -d "{extends: default, rules: {line-length: {max: 200}}}" "$f" || exit 1;
+          done
