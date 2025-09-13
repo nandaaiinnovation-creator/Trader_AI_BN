@@ -223,7 +223,12 @@ export class ZerodhaService extends EventEmitter {
       this.emit('tick', packet);
 
     } catch (err) {
-    logger.error({ message: 'Failed to handle tick', err });
+    // Avoid noisy error logs during tests; allow opt-in silence via env
+    if (process.env.NODE_ENV === 'test' || process.env.ZERODHA_SILENCE_PARSE === 'true') {
+      try { logger.debug({ message: 'Failed to handle tick (suppressed in test)', err }); } catch (e) {}
+    } else {
+      logger.error({ message: 'Failed to handle tick', err });
+    }
     }
   }
 
@@ -314,7 +319,15 @@ export class ZerodhaService extends EventEmitter {
         }
       }
     } catch (err) {
-    logger.error({ message: 'Failed to parse binary tick', err });
+    // During tests small/incomplete buffers are intentionally fed to the parser
+    // and can produce RangeError diagnostics. Avoid noisy error-level logs in
+    // test runs; record at debug level instead or allow explicit opt-in via
+    // ZERODHA_SILENCE_PARSE env var.
+    if (process.env.NODE_ENV === 'test' || process.env.ZERODHA_SILENCE_PARSE === 'true') {
+      try { logger.debug({ message: 'Failed to parse binary tick (suppressed in test)', err }); } catch (e) {}
+    } else {
+      logger.error({ message: 'Failed to parse binary tick', err });
+    }
     }
     return null;
   }

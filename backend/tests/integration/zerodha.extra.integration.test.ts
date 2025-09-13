@@ -2,6 +2,9 @@ import WebSocket, { WebSocketServer } from 'ws';
 // ...existing code...
 import { ZerodhaService } from '../../src/services/zerodha';
 
+// centralized teardown helper
+const teardown = require('../helpers/teardown');
+
 describe('ZerodhaService additional integration tests (mock WS, timers)', () => {
   let wss: WebSocketServer | undefined;
   let svc: ZerodhaService | undefined;
@@ -27,6 +30,10 @@ describe('ZerodhaService additional integration tests (mock WS, timers)', () => 
       }
       wss = undefined;
     }
+  });
+
+  afterAll(async () => {
+    await teardown();
   });
 
   test('schedules token refresh and emits events', async () => {

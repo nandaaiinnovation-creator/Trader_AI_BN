@@ -9,6 +9,9 @@
 import { WebSocketServer } from 'ws';
 import { ZerodhaService } from '../../src/services/zerodha';
 
+// ensure centralized teardown for integration resources
+const teardown = require('../helpers/teardown');
+
 jest.setTimeout(30000);
 
 describe('Zerodha jitter integration smoke', () => {
@@ -37,6 +40,10 @@ describe('Zerodha jitter integration smoke', () => {
 
     // Ensure no timers remain
     await new Promise((r) => setTimeout(r, 50));
+  });
+
+  afterAll(async () => {
+    await teardown();
   });
 
   test('handles intermittent socket drops and message delays', async () => {

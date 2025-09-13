@@ -102,6 +102,11 @@ jest.mock('http', () => {
 // Prevent the process.exit in dist/index from killing the test process.
 jest.spyOn(process, 'exit').mockImplementation(() => {});
 
+// Centralized teardown helper for integration tests (ensures redis quit,
+// io closed, etc). Placed here so this JS test (which doesn't go through
+// ts-jest) can reuse the same helper as TS tests.
+const teardown = require('../helpers/teardown');
+
 const { getRepository } = require('typeorm');
 // Prefer compiled dist files so Jest/Babel doesn't need to parse TS sources.
 const { start } = require('../../dist/index');
@@ -128,57 +133,8 @@ describe('E2E orchestrator (in-process bootstrap)', () => {
     delete process.env.ENABLE_ORCHESTRATOR;
   });
 
-  // Ensure any resources created during start() are closed to avoid Jest
-  // open-handle warnings. This includes restoring process.exit spy,
-  // closing/removing listeners from the orchestrator IO, and quitting the
-  // (mocked) redis client.
   afterAll(async () => {
-    // Restore process.exit spy if present
-    try {
-      if (process.exit && process.exit.mockRestore) process.exit.mockRestore();
-    } catch (e) { /* ignore */ }
-
-    // Close orchestrator IO if it exists
-    try {
-      const orch = getOrchestrator && getOrchestrator();
-      if (orch) {
-        // If emit/spies or an EventEmitter instance exists, remove listeners
-        try {
-          if (orch.io && typeof orch.io.removeAllListeners === 'function') {
-            orch.io.removeAllListeners();
-          }
-          if (orch.io && typeof orch.io.close === 'function') {
-            orch.io.close();
-          }
-        } catch (e) { /* ignore */ }
-
-        // Some orchestrator implementations expose getIO()
-        try {
-          if (typeof orch.getIO === 'function') {
-            const io = orch.getIO();
-            if (io && typeof io.removeAllListeners === 'function') io.removeAllListeners();
-            if (io && typeof io.close === 'function') io.close();
-          }
-        } catch (e) { /* ignore */ }
-      }
-    } catch (e) { /* ignore */ }
-
-    // Ensure mocked redis client is quit to avoid lingering handles
-    try {
-      // Prefer dist helpers since test requires from dist
-      // eslint-disable-next-line global-require
-      const helpers = require('../../dist/utils/helpers');
-      if (helpers && helpers.redisClient && typeof helpers.redisClient.quit === 'function') {
-        // may be sync or return a promise
-        await helpers.redisClient.quit();
-      }
-      // Also attempt src helpers as a fallback
-      // eslint-disable-next-line global-require
-      const srcHelpers = require('../../src/utils/helpers');
-      if (srcHelpers && srcHelpers.redisClient && typeof srcHelpers.redisClient.quit === 'function') {
-        await srcHelpers.redisClient.quit();
-      }
-    } catch (e) { /* ignore */ }
+    await teardown();
   });
 
   it('boots the app, wires orchestrator, and persists+emits a signal', async () => {

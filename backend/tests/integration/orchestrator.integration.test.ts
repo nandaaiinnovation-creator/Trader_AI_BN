@@ -8,6 +8,9 @@ import { setOrchestrator, getOrchestrator } from '../../src/services/orchestrato
 import SignalOrchestrator from '../../src/services/signalOrchestrator';
 import { getRepository } from 'typeorm';
 
+// centralized teardown helper
+const teardown = require('../helpers/teardown');
+
 describe('Orchestrator integration', () => {
   const fakeSave = jest.fn();
   const fakeCreate = jest.fn((x) => x);
@@ -54,5 +57,9 @@ describe('Orchestrator integration', () => {
     expect(fakeCreate).toHaveBeenCalled();
     expect(fakeSave).toHaveBeenCalled();
     expect(emit).toHaveBeenCalledWith('signal', expect.objectContaining({ symbol: 'BANKNIFTY' }));
+  });
+
+  afterAll(async () => {
+    await teardown();
   });
 });
