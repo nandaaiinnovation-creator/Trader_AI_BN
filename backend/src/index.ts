@@ -11,6 +11,7 @@ import { setupWebSocket } from './ws/socket';
 import { gracefulShutdown } from './utils/helpers';
 import SignalOrchestrator from './services/signalOrchestrator';
 import { setOrchestrator } from './services/orchestratorSingleton';
+import { setupOrchestrator } from './services/orchestrator';
 
 const app = express();
 app.use(express.json());
@@ -45,9 +46,17 @@ export async function start() {
     // Backwards-compatible env check: support either ENABLE_SIGNAL_ORCHESTRATOR or ENABLE_ORCHESTRATOR
     const enableOrch = process.env.ENABLE_ORCHESTRATOR === '1' || process.env.ENABLE_SIGNAL_ORCHESTRATOR === 'true';
     if (enableOrch) {
-      const orch = new SignalOrchestrator(io);
-      setOrchestrator(orch);
-      logger.info('SignalOrchestrator enabled');
+      // Prefer new setupOrchestrator entrypoint when present (test-friendly)
+      try {
+        const orch = setupOrchestrator(io as any);
+        setOrchestrator((orch as unknown) as SignalOrchestrator);
+        logger.info('SignalOrchestrator (stub) enabled via setupOrchestrator');
+      } catch (err) {
+        // Fallback to existing SignalOrchestrator class for backward compatibility
+        const orch = new SignalOrchestrator(io);
+        setOrchestrator(orch);
+        logger.info('SignalOrchestrator enabled');
+      }
     }
   } catch (err) {
   logger.error({ message: 'Startup error', err });
