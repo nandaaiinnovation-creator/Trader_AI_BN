@@ -23,12 +23,19 @@ describe('RulesEngine static helpers', () => {
 
   test('getBodySize, wicks and patterns', () => {
   const ts = Date.now();
+  // Pair for body/wick calculations
   const c1 = { open: 1, high: 2, low: 0.9, close: 1.8, timestamp: new Date(ts - 10000), volume: 0 };
-  const c2 = { open: 1.9, high: 2.1, low: 1.85, close: 1.95, timestamp: new Date(ts - 5000), volume: 0 };
-    expect(RulesEngine.getBodySize(c1)).toBeCloseTo(0.8);
-    expect(RulesEngine.getUpperWick(c1)).toBeCloseTo(0.2);
+  // For isInsideBar: previous has wider range than current
+  const prevInside = { open: 2, high: 3, low: 0.5, close: 2.5, timestamp: new Date(ts - 20000), volume: 0 };
+  const currentInside = { open: 2.2, high: 2.8, low: 1.2, close: 2.6, timestamp: new Date(ts - 15000), volume: 0 };
+  // For engulfing: current has larger body and its close >= previous.high (bullish engulfing)
+  const prevSmall = { open: 1.0, high: 1.5, low: 0.9, close: 1.1, timestamp: new Date(ts - 5000), volume: 0 };
+  const currentBig = { open: 0.95, high: 1.6, low: 0.9, close: 1.6, timestamp: new Date(ts - 1000), volume: 0 };
+
+  expect(RulesEngine.getBodySize(c1)).toBeCloseTo(0.8);
+  expect(RulesEngine.getUpperWick(c1)).toBeCloseTo(0.2);
   expect(RulesEngine.getLowerWick(c1)).toBeCloseTo(0.1);
-    expect(RulesEngine.isInsideBar(c2, c1)).toBe(true);
-    expect(RulesEngine.isEngulfing(c1, c2)).toBe(true);
+  expect(RulesEngine.isInsideBar(currentInside, prevInside)).toBe(true);
+  expect(RulesEngine.isEngulfing(currentBig, prevSmall)).toBe(true);
   });
 });
