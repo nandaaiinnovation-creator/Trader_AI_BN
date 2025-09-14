@@ -15,7 +15,7 @@ Keep a short, up-to-date summary of project progress and the current milestone. 
 **Summary**: Ongoing development. Core backend and rules engine are implemented. Current work focuses on making the Zerodha adapter CI-safe (test hooks, deterministic integration tests), repo hygiene after a force-push, and CI/publish safeguards.
 
 **Last Updated**: 2025-09-14
-**% Complete**: 60%
+**% Complete**: 65%
 
 ---
 
@@ -26,7 +26,7 @@ Keep a short, up-to-date summary of project progress and the current milestone. 
 | Base Infrastructure | Docker, DB, Redis, migrations | ✅ Done |
 | Zerodha Integration | OAuth, WS adapter, tokens, test harness | ✅ Done |
 | Signal Generation | Composite signals, DB, WS broadcast | ✅ Done |
-| Rules Engine | Implement 47 rules, config persistence | 🟧 In Progress |
+| Rules Engine | Implement 47 rules, config persistence | ✅ Done |
 | Signal Generation | Composite signals, DB, WS broadcast | 🟧 In Progress |
 | Frontend Dashboard | Charts, rules panel, signal feed | ⬜ Pending |
 | Backtesting | Modes, metrics, visualization | ⬜ Pending |
@@ -116,7 +116,9 @@ Milestone policy (short):
 
 ### Notes
 
-- New milestone: Rules Engine is selected as the next milestone to advance (builds on Zerodha integration and Signal Generation). Work will start with scaffolding, a persisted `RuleConfig` entity, and a small unit test to validate the scaffold. This is intentionally small and low-risk to keep CI green and unblock downstream milestones (Frontend Dashboard, Backtesting).
+- Rules Engine milestone: Done. The Rules Engine scaffold, migration, seeders and CI infra-validation were added on branch `feature/rules-engine-scaffold` and verified in CI (infra-validation run id `17710518656` — all tests passed). A Draft PR was created for review: https://github.com/nandaaiinnovation-creator/Trader_AI_BN/pull/22. The CI validation included: applying migrations, running seeders, building the backend, starting the backend with `ENABLE_RULES_ENGINE=true`, running smoke tests, and running the full test suite.
+
+- New milestone originally selected to advance (Rules Engine) is now completed. Follow-ups: review PR #22, tidy up coverage gaps for `src/services/rulesEngine.ts`, and remove any TODOs introduced during scaffold.
 
 ---
 
