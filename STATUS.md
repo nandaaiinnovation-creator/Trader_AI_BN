@@ -14,8 +14,8 @@ Keep a short, up-to-date summary of project progress and the current milestone. 
 
 **Summary**: Ongoing development. Core backend and rules engine are implemented. Current work focuses on making the Zerodha adapter CI-safe (test hooks, deterministic integration tests), repo hygiene after a force-push, and CI/publish safeguards.
 
-**Last Updated**: 2025-09-13
-**% Complete**: 40%
+**Last Updated**: 2025-09-14
+**% Complete**: 60%
 
 ---
 
@@ -25,7 +25,7 @@ Keep a short, up-to-date summary of project progress and the current milestone. 
 |-------|-------------|--------|
 | Base Infrastructure | Docker, DB, Redis, migrations | ✅ Done |
 | Zerodha Integration | OAuth, WS adapter, tokens, test harness | ✅ Done |
-| Signal Generation | Composite signals, DB, WS broadcast | 🟧 In Progress |
+| Signal Generation | Composite signals, DB, WS broadcast | ✅ Done |
 | Rules Engine | Implement 47 rules, config persistence | ⬜ Pending |
 | Signal Generation | Composite signals, DB, WS broadcast | 🟧 In Progress |
 | Frontend Dashboard | Charts, rules panel, signal feed | ⬜ Pending |
