@@ -12,6 +12,9 @@ import { gracefulShutdown } from './utils/helpers';
 import SignalOrchestrator from './services/signalOrchestrator';
 import { setOrchestrator } from './services/orchestratorSingleton';
 import { setupOrchestrator } from './services/orchestrator';
+import { createRulesEngineFromDb, RulesEngine } from './services/rules';
+import path from 'path';
+import fs from 'fs';
 
 const app = express();
 app.use(express.json());
@@ -56,6 +59,46 @@ export async function start() {
         const orch = new SignalOrchestrator(io);
         setOrchestrator(orch);
         logger.info('SignalOrchestrator enabled');
+      }
+    }
+
+    // Wire optional RulesEngine behind feature flag
+    const enableRules = process.env.ENABLE_RULES_ENGINE === '1' || process.env.ENABLE_RULES_ENGINE === 'true';
+    if (enableRules) {
+      try {
+        const engine = await createRulesEngineFromDb();
+
+        // Attempt to load concrete rule implementations from services/rules directory
+        const rulesDir = path.join(__dirname, 'services', 'rules');
+        const files = fs.existsSync(rulesDir) ? fs.readdirSync(rulesDir).filter(f => f.endsWith('.js') || f.endsWith('.ts')) : [];
+
+        for (const file of files) {
+          try {
+            const modPath = path.join(rulesDir, file);
+            const mod = require(modPath);
+            const RuleClass = mod && (mod.default || mod);
+            if (typeof RuleClass === 'function') {
+              // instantiate and register
+              const instance = new RuleClass();
+              const ruleName = instance.name || path.basename(file, path.extname(file));
+              // register a wrapper that delegates to the instance.evaluate(ctx)
+              engine.registerRule(ruleName, async (input: any, cfg?: any) => {
+                try {
+                  const res = await instance.evaluate(input);
+                  return { id: ruleName, name: ruleName, passed: !!res.passed, score: res.score || 0, meta: res };
+                } catch (err) {
+                  return { id: ruleName, name: ruleName, passed: false, meta: { error: `${err}` } };
+                }
+              });
+            }
+          } catch (err) {
+            logger.warn({ message: `Failed to load rule module ${file}`, err });
+          }
+        }
+
+        logger.info('RulesEngine loaded and registered rule implementations');
+      } catch (err) {
+        logger.error({ message: 'Failed to initialize RulesEngine', err });
       }
     }
   } catch (err) {

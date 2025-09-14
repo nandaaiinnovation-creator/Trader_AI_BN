@@ -26,7 +26,7 @@ Keep a short, up-to-date summary of project progress and the current milestone. 
 | Base Infrastructure | Docker, DB, Redis, migrations | ✅ Done |
 | Zerodha Integration | OAuth, WS adapter, tokens, test harness | ✅ Done |
 | Signal Generation | Composite signals, DB, WS broadcast | ✅ Done |
-| Rules Engine | Implement 47 rules, config persistence | ⬜ Pending |
+| Rules Engine | Implement 47 rules, config persistence | 🟧 In Progress |
 | Signal Generation | Composite signals, DB, WS broadcast | 🟧 In Progress |
 | Frontend Dashboard | Charts, rules panel, signal feed | ⬜ Pending |
 | Backtesting | Modes, metrics, visualization | ⬜ Pending |
@@ -110,6 +110,13 @@ Milestone policy (short):
 - [x] Create `PR_DRAFT_ZERODHA_LIVE_INTEGRATION.md` in repo root
 - [x] Confirm and commit `backend/package-lock.json` if dependencies changed
 - [ ] Final TODO/placeholder sweep
+ - [ ] Final TODO/placeholder sweep
+
+---
+
+### Notes
+
+- New milestone: Rules Engine is selected as the next milestone to advance (builds on Zerodha integration and Signal Generation). Work will start with scaffolding, a persisted `RuleConfig` entity, and a small unit test to validate the scaffold. This is intentionally small and low-risk to keep CI green and unblock downstream milestones (Frontend Dashboard, Backtesting).
 
 ---
 
