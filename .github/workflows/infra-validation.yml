@@ -70,10 +70,18 @@ jobs:
           ENABLE_RULES_ENGINE: 'true'
         working-directory: backend
         run: |
-          echo "Starting backend in background and waiting for tcp:8080"
+          echo "Starting backend in background and waiting for tcp:8080 (increased timeout)"
           nohup npm start &> /tmp/backend.log &
           echo $! > /tmp/backend.pid || true
-          npx wait-on --timeout 30000 tcp:8080
+          # Wait up to 2 minutes for the backend to start; if it times out, dump logs for debugging
+          if ! npx wait-on --timeout 120000 tcp:8080; then
+            echo "Wait-for backend timed out; dumping /tmp/backend.log for debugging"
+            echo "---- /tmp/backend.log START ----"
+            tail -n +1 /tmp/backend.log || true
+            echo "---- /tmp/backend.log END ----"
+            # Fail the step so CI run shows the diagnosis above
+            exit 1
+          fi
 
       - name: Run smoke tests (rules engine + signal persistence)
         working-directory: backend
