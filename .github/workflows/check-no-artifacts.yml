@@ -1,43 +1,37 @@
 ---
+# yamllint disable: truthy
 name: Prevent generated artifacts in commits
 
 on:
   push:
     branches:
       - main
-  ---
-  name: Prevent generated artifacts in commits
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
 
-  on:
-    push:
-      branches:
-        - main
-    pull_request:
-      types:
-        - opened
-        - synchronize
-        - reopened
+jobs:
+  check-artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  jobs:
-    check-artifacts:
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout
-          uses: actions/checkout@v4
+      - name: Check for backend/dist or backend/coverage
+        run: |
+          set -e
+          # list changed files in the push/PR
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            git fetch --no-tags --depth=1 origin $GITHUB_REF
+            git diff --name-only $GITHUB_SHA $GITHUB_REF | tee changed.txt
+          else
+            git fetch --no-tags --depth=1 origin ${{ github.event.pull_request.base.ref }}
+            git diff --name-only origin/${{ github.event.pull_request.base.ref }}...${{ github.sha }} | tee changed.txt
+          fi
 
-        - name: Check for backend/dist or backend/coverage
-          run: |
-            set -e
-            # list changed files in the push/PR
-            if [ "$GITHUB_EVENT_NAME" = "push" ]; then
-              git fetch --no-tags --depth=1 origin $GITHUB_REF
-              git diff --name-only $GITHUB_SHA $GITHUB_REF | tee changed.txt
-            else
-              git fetch --no-tags --depth=1 origin ${{ github.event.pull_request.base.ref }}
-              git diff --name-only origin/${{ github.event.pull_request.base.ref }}...${{ github.sha }} | tee changed.txt
-            fi
-
-            if grep -E "^backend/(dist|coverage)(/|$)" changed.txt; then
-              echo "Error: commits include generated artifacts under backend/dist or backend/coverage. Remove them and ensure .gitignore is correct." >&2
-              exit 1
-            fi
+          if grep -E "^backend/(dist|coverage)(/|$)" changed.txt; then
+            echo "Error: commits include generated artifacts under backend/dist or backend/coverage. Remove them and ensure .gitignore is correct." >&2
+            exit 1
+          fi
