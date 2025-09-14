@@ -4,6 +4,7 @@ on:
   pull_request_target:
     paths:
       - '.github/workflows/**'
+  workflow_dispatch:
 
 jobs:
   actionlint:
@@ -11,8 +12,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Run actionlint (docker image)
-        # Use the Docker image directly to avoid Marketplace resolution issues
-        uses: docker://nektos/actionlint:v1
-        with:
-          args: ".github/workflows"
+      - name: Run actionlint via docker run (fallback)
+        # Run the actionlint Docker image directly via `docker run` to avoid
+        # action resolution issues in PR contexts and ensure reliable execution.
+        run: |
+          docker run --rm -v "${{ github.workspace }}":/work nektos/actionlint:v1 /work/.github/workflows
