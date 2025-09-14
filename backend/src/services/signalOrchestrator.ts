@@ -1,5 +1,5 @@
-import { getRepository } from 'typeorm';
 import { Server as IOServer } from 'socket.io';
+import { persistSignal } from './signalPersist';
 
 export interface OrchestratorPayload {
   symbol: string;
@@ -18,17 +18,27 @@ export class SignalOrchestrator {
   }
 
   async persist(payload: OrchestratorPayload): Promise<unknown> {
-  // Use entity name to avoid importing entity classes at module load time
-  const repo = getRepository('signals');
-    const s = repo.create({
-      symbol: payload.symbol,
-      timeframe: payload.timeframe,
-      signal: payload.signal,
-      score: payload.score,
-      fired_rules: JSON.stringify(payload.firedRules || []),
-      ts: new Date(payload.timestamp),
-    });
-    return repo.save(s);
+    // delegate to the centralized persist helper which honors ENABLE_PERSIST
+    // and is best-effort (doesn't throw to callers on DB errors)
+    try {
+      // create the entity object in the same shape the migration expects
+      const entity = {
+        symbol: payload.symbol,
+        timeframe: payload.timeframe,
+        signal: payload.signal,
+        score: payload.score,
+        fired_rules: JSON.stringify(payload.firedRules || []),
+        ts: new Date(payload.timestamp),
+      } as any;
+      // persistSignal will return the saved entity when available
+      const saved = await persistSignal(entity);
+      return saved;
+    } catch (err) {
+      // ensure we never throw from persist()
+      // eslint-disable-next-line no-console
+      console.warn('SignalOrchestrator.persist: unexpected error', err);
+      return undefined;
+    }
   }
 
   emit(payload: OrchestratorPayload): void {

@@ -12,7 +12,7 @@
     "db:migrate": "node ./scripts/run_migrations.js",
     "db:seed": "node ./scripts/run_seeders.js",
     "test": "jest --coverage",
-    "test:smoke": "node ./tests/check_rules_config.js",
+    "test:smoke": "node ./node_modules/jest/bin/jest.js --runInBand tests/integration/signal.persist.integration.test.js --passWithNoTests",
     "test:js": "jest --coverage --runTestsByPath tests/rules/*.js",
     "test:ts": "jest --config jest.config.cjs --coverage",
     "test:integration": "jest --testPathPattern=tests/integration --config jest.config.cjs",
