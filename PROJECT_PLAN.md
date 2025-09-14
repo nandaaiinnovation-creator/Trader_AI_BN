@@ -28,7 +28,7 @@ project_name: banknifty-signals
 - Modules:
   - Zerodha adapter (REST + WS, OAuth lifecycle).
   - Rules Engine (47 rules, persisted configs).
-  - Signal Generator.
+  - Signal Generator (with feature-flagged Orchestrator).
   - Backtester (walk-forward, grid, Monte Carlo).
   - Sentiment Engine (Webz.io, Tiingo, Alpha Vantage).
 - PostgreSQL (Prisma/TypeORM schema + migrations).
@@ -47,16 +47,16 @@ project_name: banknifty-signals
 - **Export/Import**: Rule configs and backtest results as JSON/CSV.
 
 ## 4. Build Stages & Milestones
-| Stage | Deliverables
-|-------|--------------|--------|
-| Base Infrastructure | Docker stack, Postgres, Redis, migrations, backend healthcheck
-| Zerodha Integration | OAuth, WS adapter, live ticks 
-| Rules Engine | Implement 47 rules, config persistence
-| Signal Generation | Signal storage, WS broadcast, DB persistence
-| Frontend Dashboard | Chart, rules panel, tooltips, signal feed
-| Backtesting Module | Modes, metrics, visualization, export
-| Sentiment Module | API fetch, integration, toggle in UI
-| Observability & Tests | Prometheus, logging, CI/CD, integration tests
+| Stage | Deliverables |
+|-------|--------------|
+| Base Infrastructure | Docker stack, Postgres, Redis, migrations, backend healthcheck |
+| Zerodha Integration | OAuth, WS adapter, live ticks, test harness, reconnect + token lifecycle |
+| Rules Engine | Implement 47 rules, config persistence, per-rule tests |
+| Signal Generation | Signal storage, WS broadcast, DB persistence, feature-flagged Orchestrator, post-merge monitoring |
+| Frontend Dashboard | Chart, rules panel, tooltips, signal feed |
+| Backtesting Module | Modes, metrics, visualization, export |
+| Sentiment Module | API fetch, integration, toggle in UI |
+| Observability & Tests | Prometheus, structured logging, CI smoke job, integration tests, logger teardown fixes |
 
 ## 5. Dependencies
 - Zerodha KiteConnect API (REST + WS).
@@ -73,6 +73,9 @@ project_name: banknifty-signals
 | Redis/DB downtime | Graceful shutdown + retries |
 | High latency | Local caching, efficient WebSocket handling |
 | Rule complexity (47+) | Modular rules, per-rule tests |
+| Jest hanging on open handles (pino/WS) | Ensure clean teardown hooks, mock transports in tests |
+| Node version drift (18 vs 22) | CI pinned to Node 18, local dev aligned |
+| CI flakiness with WS (400 errors) | Add retry/backoff logic, mock WS in integration tests |
 
 ## 7. CI/CD & Testing
 - Local testing before GitHub push:
@@ -82,27 +85,7 @@ project_name: banknifty-signals
 - GitHub Actions pipeline:
   - Lint + tests → Docker build → push to registry → deploy.
 
-## 10. CI/CD & Milestone publishing (short)
 
-Purpose: provide a small, discoverable description of how CI and milestone publishing works so maintainers can validate readiness before publishing.
-
-- CI policy
-  - PRs should run unit tests and linters by default. Integration tests that contact emulated external services should be excluded from PR CI and run via a manual workflow (see `.github/workflows/integration-manual.yml`).
-  - The repository includes a lightweight validator for `config/defaults.json` which the CI runs (see `backend/scripts/validate-defaults.js`).
-
-- Milestone publishing policy
-  - Milestones are published intentionally: before publishing, the owner must create a marker file `.milestone_done` at repo root (or set `PUBLISH_MILESTONE=1`). This prevents accidental publishes.
-  - The `scripts/publish_milestone.js` helper finds the first `PR_DRAFT_*.md` file at the repo root and uses it as the draft PR body when creating the Draft PR via `gh pr create --draft`.
-  - `PR_DRAFT_*.md` files are the canonical PR body templates for milestone publishes. Keep at least one `PR_DRAFT_<MILESTONE>.md` in the repo root before publishing.
-
-- Quick publish checklist
-  1. Ensure `STATUS.md` reflects readiness and lists the milestone blocking items.
-  2. Ensure a `PR_DRAFT_*.md` exists in the repo root with change summary and test results.
-  3. Run `npm ci` in `backend` and confirm `backend/package-lock.json` is unchanged or committed.
-  4. Run unit tests locally (`npm test`) and optionally `npm run test:integration` for integration harness.
-  5. Create `.milestone_done` at repo root and run `npm run publish:milestone` (this will push the current branch and create a Draft PR). Do not run this unless you intend to publish.
-
-Keep `STATUS.md` as the single source of truth for milestone readiness; update it before publishing.
 
 ## 8. Deployment Checklist
 - [ ] Configure `.env` with API keys and DB URLs.
@@ -120,24 +103,72 @@ Keep `STATUS.md` as the single source of truth for milestone readiness; update i
 - **Prometheus/Grafana** for real-time monitoring.
 - **Single-user local app** reduces security surface.
 
-## 10. Milestone Policy
+## 10. Milestone Policy & Definition of Done
 
-## Base Infrastructure progress (in-progress)
-
-- A minimal `docker-compose.yml` has been added to bring up `postgres:14`, `redis:6`, and the `backend` service for local smoke tests.
-- A lightweight `/health` endpoint was added to the backend (`backend/src/index.ts`) to support healthchecks used by CI and orchestration.
-
-These are intentionally small, low-risk changes to unblock integration and deployment work (migrations and seeding are next).
-
-- Each stage in Section 4 ("Build Stages & Milestones") must be validated before any branch is pushed.
+### General Milestone Policy
+- Each milestone must be validated before advancing.
 - Validation requires:
   - ✅ Code + tests completed locally
-  - ✅ CI workflows covering unit and integration tests
-  - ✅ Documentation updated (`PROJECT_PLAN.md`, `STATUS.md`, PR_DRAFT_*.md)
+  - ✅ CI workflows (unit + integration tests) pass
+  - ✅ Documentation updated (`PROJECT_PLAN.md`, `STATUS.md`, PR draft)
   - ✅ Lockfiles committed
   - ✅ TODO/placeholder sweep complete
-- A milestone is only considered **Done** when these conditions are met and marked in `STATUS.md`.
-- Only then push the branch and open a Draft PR on GitHub.
+- Milestones are marked **Done** only when `STATUS.md` reflects completion.
+
+### Definition of Done (per milestone)
+
+- **Base Infrastructure**
+  - Docker Compose with Postgres + Redis + backend
+  - `/health` endpoint live
+  - DB migrations + seeders applied in CI
+  - Smoke tests pass in CI
+  - STATUS.md updated to Done
+
+- **Zerodha Integration**
+  - OAuth lifecycle handled
+  - WS adapter stable with reconnect + token refresh
+  - Deterministic test harness for WS
+  - Unit + integration tests added
+  - STATUS.md updated to Done
+
+- **Rules Engine**
+  - All 47 rules implemented + config persistence
+  - Per-rule unit tests
+  - RULES.md + docs updated
+  - STATUS.md updated to Done
+
+- **Signal Generation**
+  - Signal persistence to DB
+  - WS broadcast functional
+  - Orchestrator service feature-flagged (`ENABLE_SIGNAL_ORCHESTRATOR=true`)
+  - Integration tests for persist+emit
+  - Post-merge monitoring complete
+  - STATUS.md updated to Done
+
+- **Frontend Dashboard**
+  - Charts + rules panel
+  - Signal feed live
+  - Tooltips functional
+  - STATUS.md updated to Done
+
+- **Backtesting Module**
+  - Multiple modes (walk-forward, grid, Monte Carlo)
+  - Metrics persisted + visualized
+  - Export to CSV/JSON supported
+  - STATUS.md updated to Done
+
+- **Sentiment Module**
+  - API fetch from Webz.io/Tiingo/Alpha Vantage
+  - Persisted daily sentiment
+  - Toggle in rules panel
+  - STATUS.md updated to Done
+
+- **Observability & Tests**
+  - Prometheus + Grafana dashboards live
+  - Pino structured logs integrated
+  - Jest teardown fixes applied (logger/WS handles closed)
+  - CI smoke job runs
+  - STATUS.md updated to Done
 
 ---
 
@@ -165,3 +196,24 @@ When advancing a milestone (starting with Base Infrastructure), follow this spli
 
 Follow these rules for the Base Infrastructure milestone; after completion, select the next milestone from Section 4 and repeat.
 
+## 11. CI/CD & Milestone publishing (short)
+
+Purpose: provide a small, discoverable description of how CI and milestone publishing works so maintainers can validate readiness before publishing.
+
+- CI policy
+  - PRs should run unit tests and linters by default. Integration tests that contact emulated external services should be excluded from PR CI and run via a manual workflow (see `.github/workflows/integration-manual.yml`).
+  - The repository includes a lightweight validator for `config/defaults.json` which the CI runs (see `backend/scripts/validate-defaults.js`).
+
+- Milestone publishing policy
+  - Milestones are published intentionally: before publishing, the owner must create a marker file `.milestone_done` at repo root (or set `PUBLISH_MILESTONE=1`). This prevents accidental publishes.
+  - The `scripts/publish_milestone.js` helper finds the first `PR_DRAFT_*.md` file at the repo root and uses it as the draft PR body when creating the Draft PR via `gh pr create --draft`.
+  - `PR_DRAFT_*.md` files are the canonical PR body templates for milestone publishes. Keep at least one `PR_DRAFT_<MILESTONE>.md` in the repo root before publishing.
+
+- Quick publish checklist
+  1. Ensure `STATUS.md` reflects readiness and lists the milestone blocking items.
+  2. Ensure a `PR_DRAFT_*.md` exists in the repo root with change summary and test results.
+  3. Run `npm ci` in `backend` and confirm `backend/package-lock.json` is unchanged or committed.
+  4. Run unit tests locally (`npm test`) and optionally `npm run test:integration` for integration harness.
+  5. Create `.milestone_done` at repo root and run `npm run publish:milestone` (this will push the current branch and create a Draft PR). Do not run this unless you intend to publish.
+
+Keep `STATUS.md` as the single source of truth for milestone readiness; update it before publishing.

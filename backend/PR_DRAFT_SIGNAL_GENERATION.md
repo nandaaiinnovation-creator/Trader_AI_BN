@@ -7,6 +7,7 @@ Implement persistence for generated signals and validate end-to-end behavior (DB
 Changes
 
 - Add `src/services/signalPersist.ts` — TypeORM-backed best-effort persist() called by Signal Orchestrator.
+- Wire `SignalOrchestrator.persist()` to call the centralized `persistSignal()` helper (best-effort, honors `ENABLE_PERSIST`).
 - Add SQL migration `migrations/1680000000000-create-signals-table.sql` that creates the `signals` table.
 - Add seed script `scripts/seed-signals.js`.
 - Add integration smoke test `tests/integration/signal.persist.integration.test.js` that boots the orchestrator with `ENABLE_PERSIST=true` and asserts a row is present in Postgres.

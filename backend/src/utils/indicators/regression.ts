@@ -17,14 +17,12 @@ export function linearRegression(prices: number[], period: number): LinearRegres
     let sumY = 0;
     let sumXY = 0;
     let sumXX = 0;
-    let sumYY = 0;
 
     for (let i = 0; i < n; i++) {
         sumX += x[i];
         sumY += y[i];
         sumXY += x[i] * y[i];
-        sumXX += x[i] * x[i];
-        sumYY += y[i] * y[i];
+    sumXX += x[i] * x[i];
     }
 
     const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);

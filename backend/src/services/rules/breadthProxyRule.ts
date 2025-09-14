@@ -4,7 +4,7 @@ import { RuleContext, RuleResult } from '../../types/rules';
 export default class BreadthProxyRule extends BaseRule {
   async evaluate(context: RuleContext): Promise<RuleResult> {
     this.validateConfig(['constituents_count', 'adv_decl_threshold']);
-    const { constituents_count, adv_decl_threshold } = this.config.params;
+  const { adv_decl_threshold } = this.config.params;
 
   const ms: any = context.marketState || {};
   const breadth = ms.breadth;

@@ -1,6 +1,6 @@
 import { BaseRule } from './base';
 import { RuleContext, RuleResult } from '../../types/rules';
-import { atr } from '../../utils/indicators';
+// ...existing code... (removed unused import 'atr')
 
 export default class AdrPdrBreakoutRule extends BaseRule {
   async evaluate(context: RuleContext): Promise<RuleResult> {

@@ -2,6 +2,12 @@
 
 This file tracks the stabilization work for the `feature/signal-orchestrator` branch.
 
+Milestone: Signal Generation — CLOSED
+
+- Status: Closed on 2025-09-13
+- Summary: The Signal Generation milestone (Signal Orchestrator tests, parser hardening, CI env updates and teardown improvements) was completed and merged via PR #17. Post-merge monitoring is active but is an operational activity, not a blocking milestone.
+
+
 - Harden E2E test teardown — Completed
   - Added centralized teardown helper and updated integration tests to call it.
 - Silence Zerodha parser noise in test env — Completed
@@ -16,6 +22,10 @@ Next steps
  - PR #17 has been marked ready for review; assign backend/test owners as reviewers.
 - Consider adding `ZERODHA_SILENCE_PARSE=true` to CI workflow env if we want absolute suppression in non-test job contexts.
 - Optionally add buffer-length validation in `parseBinaryTick` if production data shows real parser errors.
+
+Recent progress (feature/signal-persist)
+- Signal persistence wiring: `SignalOrchestrator` now delegates persistence to `src/services/signalPersist.ts`. The helper uses `getRepository('signals')` and is gated by `ENABLE_PERSIST` in CI/production; `NODE_ENV=test` still allows unit tests to exercise the persistence path via mocks.
+- Local validation: full unit + integration test suite run locally and passed on branch `feature/signal-persist` before push.
 
 # Status - feature/signal-orchestrator
 
