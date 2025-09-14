@@ -3,7 +3,7 @@ import 'reflect-metadata';
 import express, { Request, Response } from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
-import { createConnection } from 'typeorm';
+import createAppConnection from './db';
 import { redisClient } from './utils/helpers';
 import { logger } from './utils/logger';
 import api from './api';
@@ -36,7 +36,7 @@ app.get('/api/health', (_req: Request, res: Response) => {
 // Boot DB, Redis, WS
 export async function start() {
   try {
-    await createConnection();
+  await createAppConnection();
     await redisClient.connect();
     logger.info('DB and Redis connected');
     server.listen(process.env.PORT || 8080, () => {
