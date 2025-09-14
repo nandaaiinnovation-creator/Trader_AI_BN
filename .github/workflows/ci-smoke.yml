@@ -1,9 +1,12 @@
+---
+# yamllint disable: truthy
 name: CI Smoke
 
 on:
   push:
-    branches: [ feature/** ]
-  workflow_dispatch: {}
+    branches:
+      - 'feature/**'
+  workflow_dispatch:
 
 jobs:
   smoke:

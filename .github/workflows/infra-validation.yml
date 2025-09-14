@@ -6,7 +6,7 @@ on:
       - 'docker-compose.yml'
       - 'backend/**'
       - '.github/**'
-  workflow_dispatch: {}
+  workflow_dispatch:
 
 jobs:
   infra-validate:

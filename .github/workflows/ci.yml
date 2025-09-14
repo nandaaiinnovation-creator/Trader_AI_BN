@@ -1,11 +1,18 @@
-﻿name: CI
+﻿---
+# yamllint disable: truthy
+name: CI
 
 on:
   push:
-    branches: [ main, 'feature/**', 'tests/**', 'cleanup/**' ]
+    branches:
+      - main
+      - 'feature/**'
+      - 'tests/**'
+      - 'cleanup/**'
   pull_request:
-    branches: [ main ]
-  workflow_dispatch: {}
+    branches:
+      - main
+  workflow_dispatch:
   schedule:
     - cron: '0 2 * * *' # daily at 02:00 UTC
 
