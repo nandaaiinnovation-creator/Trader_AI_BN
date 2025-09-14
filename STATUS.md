@@ -125,12 +125,11 @@ Milestone policy (short):
 ### Proposed next milestone: Frontend Dashboard (minimal)
 
 Definition of Done (DoD):
-- Implement minimal API endpoints required by the dashboard (if missing): `GET /api/signals`, `GET /api/rules`, `GET /api/health` (health already present).
-- Add a lightweight React + Vite app scaffold in `frontend/` with a `Dashboard` page that subscribes to Socket.IO signals and renders a simple signal list and latest rule config.
-- Add frontend README with run steps and a development Docker target for local demo (optional).
-- Add end-to-end smoke validation in CI (manual or optional): confirm server serves a static build artifact or health endpoint used by the UI.
-- Update documentation: `PROJECT_PLAN.md` and `STATUS.md` with the milestone DoD and expected artifacts.
-- Ensure CI passes: unit tests + infra smoke tests continue to pass.
+- Create a `feature/frontend-dashboard-minimal` branch with a lightweight Vite+React scaffold in `frontend/`.
+- Minimal dashboard page that connects to backend Socket.IO and displays recent signals.
+- `README.md` with local run instructions and a dev proxy to backend.
+- Open a Pull Request for the scaffold and link the milestone DoD in the PR description.
+- Keep Issue #23 (rulesEngine coverage) and Issue #24 (TODO sweep) open as parallel work; do not block this milestone on them.
 
 Priority & scope notes: This is intentionally scoped small — a single-page dashboard that consumes the existing backend API and Socket.IO feed, with a focus on demoability rather than a finished UI. Completing this milestone unblocks Backtesting (by providing a UI to view signals) and Frontend-driven QA.
 
