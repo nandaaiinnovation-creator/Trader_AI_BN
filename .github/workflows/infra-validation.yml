@@ -59,17 +59,62 @@ jobs:
         run: |
           node ./scripts/run_seeders.js
 
-      - name: Run tests
+      - name: Build backend
+        working-directory: backend
+        run: |
+          npm run build
+
+      - name: Start backend (background)
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/banknifty
+          ENABLE_RULES_ENGINE: 'true'
+        working-directory: backend
+        run: |
+          echo "Starting backend in background and waiting for tcp:8080 (increased timeout)"
+          nohup npm start &> /tmp/backend.log &
+          echo $! > /tmp/backend.pid || true
+          # Wait up to 2 minutes for the backend to start; if it times out, dump logs for debugging
+          if ! npx wait-on --timeout 120000 tcp:8080; then
+            echo "Wait-for backend timed out; dumping /tmp/backend.log for debugging"
+            echo "---- /tmp/backend.log START ----"
+            tail -n +1 /tmp/backend.log || true
+            echo "---- /tmp/backend.log END ----"
+            # Fail the step so CI run shows the diagnosis above
+            exit 1
+          fi
+
+      - name: Healthcheck backend
+        working-directory: backend
+        run: |
+          echo "Checking HTTP /health endpoint"
+          # Retry a few times to allow the app to finish warm-up
+          retries=6
+          until curl --fail http://localhost:8080/health || [ $retries -le 0 ]; do
+            echo "Health endpoint not ready, retries=$retries; sleeping 5s"
+            sleep 5
+            retries=$((retries-1))
+          done
+          if [ $retries -le 0 ]; then
+            echo "HTTP /health check failed; dumping /tmp/backend.log for debugging"
+            echo "---- /tmp/backend.log START ----"
+            tail -n +1 /tmp/backend.log || true
+            echo "---- /tmp/backend.log END ----"
+            exit 1
+          fi
+
+      - name: Run smoke tests (rules engine + signal persistence)
+        working-directory: backend
+        run: |
+          echo "Running smoke test that validates persisted signals"
+          npm run test:smoke
+
+      - name: Stop backend
+        working-directory: backend
+        run: |
+          if [ -f /tmp/backend.pid ]; then
+            kill "$(cat /tmp/backend.pid)" || true
+          fi
+
+      - name: Run full test suite
         working-directory: backend
         run: npm test
-
-      - name: Smoke healthcheck
-        run: |
-          echo "Waiting up to 15s for service on tcp:8080..."
-          npx wait-on --timeout 15000 tcp:8080 || echo "wait-on timed out, continuing"
-          echo "Attempting HTTP GET /health"
-          if curl --fail --max-time 5 http://localhost:8080/health; then
-            echo "Healthcheck succeeded"
-          else
-            echo "Healthcheck failed or service unavailable (non-fatal)"
-          fi

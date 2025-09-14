@@ -35,3 +35,14 @@ CREATE TABLE IF NOT EXISTS signals (
 );
 
 CREATE INDEX IF NOT EXISTS idx_signals_symbol_ts ON signals(symbol, ts DESC);
+
+-- Persisted Rule Configs table for Rules Engine
+CREATE TABLE IF NOT EXISTS rule_configs (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL UNIQUE,
+  enabled BOOLEAN NOT NULL DEFAULT true,
+  config JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_rule_configs_name ON rule_configs(name);

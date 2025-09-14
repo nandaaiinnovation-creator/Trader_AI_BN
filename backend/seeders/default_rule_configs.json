@@ -1,0 +1,23 @@
+[
+  {
+    "name": "always-pass",
+    "enabled": true,
+    "config": { "description": "A trivial rule used for initial testing" }
+  }
+  ,
+  {
+    "name": "macdCrossRule",
+    "enabled": true,
+    "config": { "fast": 12, "slow": 26, "signal": 9 }
+  },
+  {
+    "name": "rsiAdaptive",
+    "enabled": true,
+    "config": { "period": 14, "overbought": 70, "oversold": 30 }
+  },
+  {
+    "name": "openingRangeBreakoutRule",
+    "enabled": false,
+    "config": { "rangeMinutes": 15 }
+  }
+]
