@@ -3,7 +3,8 @@ name: Infra Validation - Signal Persist
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   infra-validation:
