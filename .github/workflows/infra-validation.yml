@@ -83,6 +83,25 @@ jobs:
             exit 1
           fi
 
+      - name: Healthcheck backend
+        working-directory: backend
+        run: |
+          echo "Checking HTTP /health endpoint"
+          # Retry a few times to allow the app to finish warm-up
+          retries=6
+          until curl --fail http://localhost:8080/health || [ $retries -le 0 ]; do
+            echo "Health endpoint not ready, retries=$retries; sleeping 5s"
+            sleep 5
+            retries=$((retries-1))
+          done
+          if [ $retries -le 0 ]; then
+            echo "HTTP /health check failed; dumping /tmp/backend.log for debugging"
+            echo "---- /tmp/backend.log START ----"
+            tail -n +1 /tmp/backend.log || true
+            echo "---- /tmp/backend.log END ----"
+            exit 1
+          fi
+
       - name: Run smoke tests (rules engine + signal persistence)
         working-directory: backend
         run: |
