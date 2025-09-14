@@ -15,7 +15,7 @@ Keep a short, up-to-date summary of project progress and the current milestone. 
 **Summary**: Ongoing development. Core backend and rules engine are implemented. Current work focuses on making the Zerodha adapter CI-safe (test hooks, deterministic integration tests), repo hygiene after a force-push, and CI/publish safeguards.
 
 **Last Updated**: 2025-09-14
-**% Complete**: 65%
+**% Complete**: 67%
 
 ---
 
@@ -116,9 +116,23 @@ Milestone policy (short):
 
 ### Notes
 
-- Rules Engine milestone: Done. The Rules Engine scaffold, migration, seeders and CI infra-validation were added on branch `feature/rules-engine-scaffold` and verified in CI (infra-validation run id `17710518656` — all tests passed). A Draft PR was created for review: https://github.com/nandaaiinnovation-creator/Trader_AI_BN/pull/22. The CI validation included: applying migrations, running seeders, building the backend, starting the backend with `ENABLE_RULES_ENGINE=true`, running smoke tests, and running the full test suite.
+ - Rules Engine milestone: Done. The Rules Engine scaffold, migration, seeders and CI infra-validation were added on branch `feature/rules-engine-scaffold` and verified in CI (infra-validation run id `17710518656` — all tests passed). PR #22 (Rules Engine) and PR #25 (tests) contain the changes. 
 
-- New milestone originally selected to advance (Rules Engine) is now completed. Follow-ups: review PR #22, tidy up coverage gaps for `src/services/rulesEngine.ts`, and remove any TODOs introduced during scaffold.
+ - Follow-ups (open): Issue #23 — "Increase coverage for src/services/rulesEngine.ts" remains open as a tracked improvement that does NOT block milestone progression. Issue URL: https://github.com/nandaaiinnovation-creator/Trader_AI_BN/issues/23
+
+ - New milestone selection: Frontend Dashboard (minimal API wiring + UI placeholders). Rationale: both Rules Engine and Signal Generation are Done; a minimal Frontend Dashboard unblocks reviewers and product testing (it depends on backend APIs that are already present) and enables UX validation and demoing of signals.
+
+### Proposed next milestone: Frontend Dashboard (minimal)
+
+Definition of Done (DoD):
+- Implement minimal API endpoints required by the dashboard (if missing): `GET /api/signals`, `GET /api/rules`, `GET /api/health` (health already present).
+- Add a lightweight React + Vite app scaffold in `frontend/` with a `Dashboard` page that subscribes to Socket.IO signals and renders a simple signal list and latest rule config.
+- Add frontend README with run steps and a development Docker target for local demo (optional).
+- Add end-to-end smoke validation in CI (manual or optional): confirm server serves a static build artifact or health endpoint used by the UI.
+- Update documentation: `PROJECT_PLAN.md` and `STATUS.md` with the milestone DoD and expected artifacts.
+- Ensure CI passes: unit tests + infra smoke tests continue to pass.
+
+Priority & scope notes: This is intentionally scoped small — a single-page dashboard that consumes the existing backend API and Socket.IO feed, with a focus on demoability rather than a finished UI. Completing this milestone unblocks Backtesting (by providing a UI to view signals) and Frontend-driven QA.
 
 ---
 
