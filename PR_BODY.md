@@ -24,6 +24,8 @@ Linked issues
 
 - Links to: Issue #30 (Dashboard Polish)
 
+Refs: #30
+
 Notes
 
 - After opening the draft PR I'll follow up by mocking `getRuleConfigs` and `socket.io-client` in tests to remove act() warnings and then continue with tooltip/legend polish.

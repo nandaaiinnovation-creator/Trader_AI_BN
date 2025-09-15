@@ -22,3 +22,5 @@ export async function upsertRuleConfig(name, payload){
     throw err
   }
 }
+
+export default { getRuleConfigs, upsertRuleConfig }

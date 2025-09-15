@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, act } from '@testing-library/react'
+import { render, act, fireEvent, waitFor } from '@testing-library/react'
 import ChartPanel from '../components/ChartPanel'
 
 // Minimal mock for ResizeObserver used in ChartPanel
@@ -15,19 +15,41 @@ beforeAll(()=>{
   global.ResizeObserver = ResizeObserverMock
 })
 
-test('ChartPanel renders and handles markers/resize', ()=>{
+test('ChartPanel renders and has tooltip/legend elements', async ()=>{
   const props = {
-    symbols: ['BNF'],
-    series: [ { time: Date.now()/1000, value: 100 } ],
-    signals: [{time: Date.now()/1000, price: 100, type: 'BUY'}]
+    signals: [{ timestamp: Date.now(), score: 100, signal: 'BUY', symbol: 'BNF' }]
   }
 
   const { container } = render(<ChartPanel {...props} />)
   // smoke: ensure the root element renders
-  expect(container.querySelector('.chart-panel') || container.firstChild).toBeTruthy()
+  const root = container.querySelector('.chart-panel') || container.firstChild
+  expect(root).toBeTruthy()
 
-  // Simulate a resize by calling the RAF loop if any
+  // legend should be present
+  const legend = container.querySelector('.chart-legend')
+  expect(legend).toBeTruthy()
+
+  // tooltip exists but is hidden by default
+  const tooltip = container.querySelector('.chart-tooltip')
+  expect(tooltip).toBeTruthy()
+  expect(tooltip.getAttribute('aria-hidden')).toBe('true')
+
+  // simulate pointermove on the actual chart area (inner div) to reveal tooltip
+  const chartArea = container.querySelector('.chart-panel > div') || root
+  // provide a simple bounding rect so pointer math works in jsdom
+  chartArea.getBoundingClientRect = () => ({ left: 0, top: 0, width: 100, height: 100 })
+  // wait a microtask so pointer handlers in effects are attached
+  await new Promise(r => setTimeout(r, 0))
   act(()=>{
-    // nothing to do — ChartPanel uses ResizeObserver; presence of mock is enough for smoke
+    // prefer mouseMove for jsdom; also dispatch a native PointerEvent as fallback
+    fireEvent.mouseMove(chartArea, { clientX: 10, clientY: 10 })
+    try {
+      const ev = new PointerEvent('pointermove', { bubbles: true, clientX: 10, clientY: 10 })
+      chartArea.dispatchEvent(ev)
+    } catch (e) {}
+  })
+  // tooltip should now be visible (aria-hidden=false) — wait for the attribute to change
+  await waitFor(() => {
+    expect(tooltip.getAttribute('aria-hidden')).toBe('false')
   })
 })
