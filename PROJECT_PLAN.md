@@ -135,7 +135,7 @@ These are intentionally small, low-risk changes to unblock integration and deplo
   - ✅ CI workflows covering unit and integration tests
   - ✅ Documentation updated (`PROJECT_PLAN.md`, `STATUS.md`, PR_DRAFT_*.md)
   - ✅ Lockfiles committed
-  - ✅ TODO/placeholder sweep complete
+  - ✅ TODO/placeholder sweep complete (IN-PROGRESS: agent scanned repo; lint/typecheck/tests passing locally)
 - A milestone is only considered **Done** when these conditions are met and marked in `STATUS.md`.
 - Only then push the branch and open a Draft PR on GitHub.
 

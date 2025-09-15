@@ -1,4 +1,3 @@
-import { getRepository } from 'typeorm';
 import { Server as IOServer } from 'socket.io';
 import { persistSignal } from './signalPersist';
 

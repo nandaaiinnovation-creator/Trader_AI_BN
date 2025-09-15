@@ -4,7 +4,9 @@ import { RuleContext, RuleResult } from '../../types/rules';
 export default class WickRejectionRule extends BaseRule {
   async evaluate(context: RuleContext): Promise<RuleResult> {
     this.validateConfig(['wick_threshold_pct', 'use_vwap_or_bb']);
-    const { wick_threshold_pct, use_vwap_or_bb } = this.config.params;
+  const { wick_threshold_pct, use_vwap_or_bb } = this.config.params;
+  const _use_vwap_or_bb = use_vwap_or_bb;
+  void _use_vwap_or_bb;
 
     const candles = context.candles;
     const last = candles[candles.length - 1];

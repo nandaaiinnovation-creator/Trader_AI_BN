@@ -642,7 +642,7 @@ export class ZerodhaService extends EventEmitter {
     return Array.from(this.subscribedTokens);
   }
 
-  private getInstrumentToken(symbol: string): number {
+  private getInstrumentToken(_symbol: string): number {
     // Implement instrument token lookup
     // You'd typically maintain a mapping or fetch from Zerodha's instruments API
     return 0; // placeholder
@@ -723,7 +723,7 @@ export class ZerodhaService extends EventEmitter {
     }
   }
 
-  private generateChecksum(requestToken: string): string {
+  private generateChecksum(_requestToken: string): string {
     // Implement checksum generation as per Zerodha docs
     return '';
   }

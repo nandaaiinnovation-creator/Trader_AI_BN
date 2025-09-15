@@ -35,14 +35,15 @@ export default class OptionFlowRule extends BaseRule {
     }
 
     // Calculate PCR and its rate of change
-    const currentPCR = metrics.totalPutOI / metrics.totalCallOI;
-    const pcrChange = metrics.totalPutOIChange / metrics.totalCallOIChange;
+  const currentPCR = metrics.totalPutOI / metrics.totalCallOI;
+  const _pcrChange = metrics.totalPutOIChange / metrics.totalCallOIChange;
+  void _pcrChange;
 
     // Calculate signal strength based on multiple factors
-    const strength = this.calculateSignalStrength(metrics, currentPCR, pcrChange);
+    const strength = this.calculateSignalStrength(metrics, currentPCR, _pcrChange);
 
     // Check for bullish signals
-    if (metrics.bullishScore > 0.7 && pcrChange < 0.8) {
+    if (metrics.bullishScore > 0.7 && _pcrChange < 0.8) {
       return this.createResult(
         true,
         strength,
@@ -51,7 +52,7 @@ export default class OptionFlowRule extends BaseRule {
     }
 
     // Check for bearish signals
-    if (metrics.bearishScore > 0.7 && pcrChange > 1.2) {
+    if (metrics.bearishScore > 0.7 && _pcrChange > 1.2) {
       return this.createResult(
         true,
         strength,
@@ -188,7 +189,7 @@ export default class OptionFlowRule extends BaseRule {
   private calculateSignalStrength(
     metrics: any,
     currentPCR: number,
-    pcrChange: number
+    _pcrChange: number
   ): number {
     // Combine multiple factors for signal strength:
     // 1. Absolute score (bullish or bearish)

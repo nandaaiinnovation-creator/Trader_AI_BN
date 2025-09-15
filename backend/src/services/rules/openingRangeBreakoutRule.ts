@@ -123,7 +123,7 @@ export default class OpeningRangeBreakoutRule extends BaseRule {
     return { high, low, volume, firstCandleClose };
   }
 
-  private calculateBreakoutStrength(currentPrice: number, breakoutLevel: number, openPrice: number, isBullish: boolean): number {
+  private calculateBreakoutStrength(currentPrice: number, breakoutLevel: number, openPrice: number, _isBullish: boolean): number {
     // Calculate strength based on:
     // 1. Distance from breakout level (normalized by opening range size)
     // 2. Momentum from opening price

@@ -1,11 +1,14 @@
-import { BaseRule, RuleErrorType } from './base';
+import { BaseRule } from './base';
+// RuleErrorType not used in this file
 import { RuleContext, RuleResult } from '../../types/rules';
 import { atr } from '../../utils/indicators';
 
 export default class SupertrendRule extends BaseRule {
   async evaluate(context: RuleContext): Promise<RuleResult> {
     this.validateConfig(['atr_period', 'multiplier', 'fresh_flip_bars']);
-    const { atr_period, multiplier, fresh_flip_bars } = this.config.params;
+  const { atr_period, multiplier } = this.config.params;
+  const _fresh_flip_bars = (this.config.params as any).fresh_flip_bars;
+  void _fresh_flip_bars;
 
     const highs = context.candles.map(c => c.high);
     const lows = context.candles.map(c => c.low);
