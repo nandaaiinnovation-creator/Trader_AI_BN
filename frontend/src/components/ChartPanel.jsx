@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { createChart } from 'lightweight-charts'
 import '../styles/chart.css'
 import ChartOverlay from './ChartOverlay'
@@ -8,7 +8,9 @@ export default function ChartPanel({ signals }) {
   const chartRef = useRef(null)
   const rafRef = useRef(null)
   const resizeObserverRef = useRef(null)
+  // dataRef now holds an array of series: [{ label, color, points: [...] }]
   const dataRef = useRef([])
+  const [legendItems, setLegendItems] = useState([{ label: 'Series 1', value: '—', color: '#2b8bd1' }])
   const tooltipRef = useRef(null)
   const legendRef = useRef(null)
 
@@ -26,8 +28,8 @@ export default function ChartPanel({ signals }) {
       grid: { vertLines: { visible: false }, horzLines: { color: '#eee' } },
     })
 
-  const line = chart.addLineSeries({ color: '#2b8bd1', lineWidth: 2 })
-    chartRef.current = { chart, line }
+  // prepare container for multiple series; we'll add series objects later
+  chartRef.current = { chart, series: {} }
 
     // Resize handling
     const ro = new ResizeObserver(() => {
@@ -51,35 +53,69 @@ export default function ChartPanel({ signals }) {
 
     // Batch frequent updates with requestAnimationFrame to avoid thrashing
     if (rafRef.current) cancelAnimationFrame(rafRef.current)
-    // compute points now and store immediately so pointer handlers can use them
+    // compute series now and store immediately so pointer handlers can use them
     const slice = (signals || []).slice(0, 1000)
-    const points = slice.slice().reverse().map((s) => ({
-      time: Math.floor(new Date(s.timestamp).getTime() / 1000),
-      value: Number(s.score || 0),
-    }))
-    dataRef.current = points
+
+    // Group points by symbol when available, otherwise fallback to a single series
+    const grouped = {}
+    if (slice.length && slice[0].symbol) {
+      slice.forEach(s => {
+        const key = s.symbol || 'Series 1'
+        if (!grouped[key]) grouped[key] = []
+        grouped[key].push({ time: Math.floor(new Date(s.timestamp).getTime() / 1000), value: Number(s.score || 0), raw: s })
+      })
+    } else {
+      grouped['Series 1'] = slice.map(s => ({ time: Math.floor(new Date(s.timestamp).getTime() / 1000), value: Number(s.score || 0), raw: s }))
+    }
+
+    // Prepare a small color palette and ensure deterministic assignment per label
+    const palette = ['#2b8bd1', '#f59e0b', '#10b981', '#ef4444', '#7c3aed']
+    const labels = Object.keys(grouped)
+    const seriesData = labels.map((label, idx) => ({ label, color: palette[idx % palette.length], points: grouped[label].slice().reverse() }))
+    dataRef.current = seriesData
+
+    // update legend items synchronously so tests and keyboard focus can read them
+    try {
+      const syncItems = seriesData.map(s => ({ label: s.label, value: s.points && s.points.length ? s.points[s.points.length-1].value.toFixed(2) : '—', color: s.color }))
+      setLegendItems(syncItems)
+    } catch (e) {}
+
     rafRef.current = requestAnimationFrame(() => {
-      // signals are newest-first; convert to ascending time for the chart
-      r.line.setData(points)
+      // ensure we have created a series object for every label
+      labels.forEach((label, idx) => {
+        const existing = (r.series && r.series[label])
+        if (!existing) {
+          try {
+            const s = r.chart.addLineSeries({ color: seriesData[idx].color, lineWidth: 2 })
+            r.series = r.series || {}
+            r.series[label] = { series: s, color: seriesData[idx].color }
+          } catch (e) { /* ignore creation error in tests */ }
+        }
+      })
 
-      // Add simple markers for notable signals (keep markers small)
-      const markers = slice
-        .filter(s => s.signal)
-        .slice(0, 50)
-        .map(s => ({
-          time: Math.floor(new Date(s.timestamp).getTime() / 1000),
-          position: 'below',
-          color: s.signal === 'BUY' ? '#2e7d32' : '#c62828',
-          shape: 'arrowUp',
-          text: `${s.symbol} ${s.signal}`,
-        }))
-      try { r.line.setMarkers(markers) } catch (e) { /* ignore marker failures */ }
+      // set data and markers per series
+      labels.forEach((label, idx) => {
+        try {
+          const pts = seriesData[idx].points
+          if (r.series && r.series[label] && r.series[label].series && pts) {
+            r.series[label].series.setData(pts)
+            // markers for this series (limited)
+            const markers = (slice || [])
+              .filter(s => s.signal && s.symbol === label)
+              .slice(0, 50)
+              .map(s => ({
+                time: Math.floor(new Date(s.timestamp).getTime() / 1000),
+                position: 'below',
+                color: s.signal === 'BUY' ? '#2e7d32' : '#c62828',
+                shape: 'arrowUp',
+                text: `${s.symbol} ${s.signal}`,
+              }))
+            try { r.series[label].series.setMarkers(markers) } catch (e) {}
+          }
+        } catch (e) { /* ignore per-series errors */ }
+      })
 
-      // Update legend / current value
-      try {
-        const last = points[points.length - 1]
-        if (legendRef.current && last) legendRef.current.textContent = `Current: ${last.value.toFixed(2)}`
-      } catch (e) {}
+      // Do not update legend state here; we already set sync values above. Keep RAF for chart operations only.
     })
 
     return () => {
@@ -93,24 +129,36 @@ export default function ChartPanel({ signals }) {
     if (!node) return
 
     function onPointerMove(e){
-      const pts = dataRef.current || []
-      if (!pts.length) return
+      const seriesArr = dataRef.current || []
+      if (!seriesArr.length) return
       const rect = node.getBoundingClientRect()
       const x = e.clientX - rect.left
-      const p = findNearestPoint(x, rect)
-      if (!p) return
+      // compute an index per series by proportional x
+      const items = seriesArr.map(s => {
+        const len = s.points.length || 1
+        const proportional = x / rect.width
+        const idx = Math.max(0, Math.min(len - 1, Math.floor(proportional * len)))
+        const v = s.points[idx]
+        return { label: s.label, value: v ? v.value.toFixed(2) : '—', color: s.color }
+      })
+
       if (tooltipRef.current){
         tooltipRef.current.style.display = 'block'
         tooltipRef.current.style.left = Math.max(4, Math.min(rect.width - 10, x)) + 'px'
         tooltipRef.current.style.top = '8px'
-        tooltipRef.current.textContent = `${new Date(p.time*1000).toLocaleTimeString()} — ${p.value.toFixed(2)}`
+        // show time from the first series as a reference
+        const first = seriesArr[0] && seriesArr[0].points[0]
+        if (first) tooltipRef.current.textContent = `${new Date(first.time*1000).toLocaleTimeString()} — ${items[0].value}`
         tooltipRef.current.setAttribute('aria-hidden', 'false')
       }
-      // update legend possible multi-series structure
-      if (legendRef.current){
-        // simple single-series support for now
-        legendRef.current.textContent = `Current: ${p.value.toFixed(2)}`
-      }
+      // update legend multi-series structure via state so overlay re-renders
+      try {
+        setLegendItems(items)
+        if (legendRef.current) {
+          // keep textual backup
+          legendRef.current.textContent = items.map(i => `${i.label}: ${i.value}`).join(' | ')
+        }
+      } catch (e) {}
     }
 
     function onPointerLeave(){
@@ -137,17 +185,18 @@ export default function ChartPanel({ signals }) {
     const node = ref.current
     if (!node) return
     function onFocus(){
-      const pts = dataRef.current || []
-      if (!pts.length) return
-      const p = pts[pts.length -1]
-      if (!p) return
+      const seriesArr = dataRef.current || []
+      if (!seriesArr.length) return
+      // show last point for each series
+      const items = seriesArr.map(s => ({ label: s.label, value: s.points && s.points.length ? s.points[s.points.length-1].value.toFixed(2) : '—', color: s.color }))
       if (tooltipRef.current){
         tooltipRef.current.style.display = 'block'
         tooltipRef.current.style.left = '50%'
         tooltipRef.current.style.top = '8px'
-        tooltipRef.current.textContent = `${new Date(p.time*1000).toLocaleTimeString()} — ${p.value.toFixed(2)}`
+        tooltipRef.current.textContent = items.length ? `${items[0].label}: ${items[0].value}` : ''
         tooltipRef.current.setAttribute('aria-hidden', 'false')
       }
+      try { setLegendItems(items) } catch (e) {}
     }
     function onBlur(){
       if (tooltipRef.current){
@@ -184,13 +233,11 @@ export default function ChartPanel({ signals }) {
     return best
   }
 
-  // prepare multi-series legend items (single series now)
-  const legendItems = [{ label: 'Series 1', value: dataRef.current && dataRef.current.length ? dataRef.current[dataRef.current.length-1].value.toFixed(2) : '—' }]
-
+  // legendItems state drives the overlay rendering (multi-series aware)
   return (
     <div className="chart-panel">
       <div ref={ref} className="chart-area" />
-      <ChartOverlay legendItems={legendItems} currentValue={legendItems[0].value} tooltipId={'chart-tooltip'} tooltipRef={tooltipRef} legendRef={legendRef} />
+      <ChartOverlay legendItems={legendItems} currentValue={legendItems && legendItems[0] ? legendItems[0].value : '—'} tooltipId={'chart-tooltip'} tooltipRef={tooltipRef} legendRef={legendRef} />
     </div>
   )
 }
