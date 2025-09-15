@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 import { createChart } from 'lightweight-charts'
 import '../styles/chart.css'
+import ChartOverlay from './ChartOverlay'
 
 export default function ChartPanel({ signals }) {
   const ref = useRef(null)
@@ -96,8 +97,7 @@ export default function ChartPanel({ signals }) {
       if (!pts.length) return
       const rect = node.getBoundingClientRect()
       const x = e.clientX - rect.left
-      const idx = Math.max(0, Math.min(pts.length - 1, Math.floor((x / rect.width) * pts.length)))
-      const p = pts[idx]
+      const p = findNearestPoint(x, rect)
       if (!p) return
       if (tooltipRef.current){
         tooltipRef.current.style.display = 'block'
@@ -105,6 +105,11 @@ export default function ChartPanel({ signals }) {
         tooltipRef.current.style.top = '8px'
         tooltipRef.current.textContent = `${new Date(p.time*1000).toLocaleTimeString()} — ${p.value.toFixed(2)}`
         tooltipRef.current.setAttribute('aria-hidden', 'false')
+      }
+      // update legend possible multi-series structure
+      if (legendRef.current){
+        // simple single-series support for now
+        legendRef.current.textContent = `Current: ${p.value.toFixed(2)}`
       }
     }
 
@@ -115,7 +120,7 @@ export default function ChartPanel({ signals }) {
       }
     }
 
-    node.addEventListener('pointermove', onPointerMove)
+  node.addEventListener('pointermove', onPointerMove)
     node.addEventListener('mousemove', onPointerMove)
     node.addEventListener('pointerleave', onPointerLeave)
     node.addEventListener('mouseleave', onPointerLeave)
@@ -124,6 +129,39 @@ export default function ChartPanel({ signals }) {
       node.removeEventListener('mousemove', onPointerMove)
       node.removeEventListener('pointerleave', onPointerLeave)
       node.removeEventListener('mouseleave', onPointerLeave)
+    }
+  }, [])
+
+  // keyboard accessibility: focus the chart area to show tooltip for the last point
+  useEffect(()=>{
+    const node = ref.current
+    if (!node) return
+    function onFocus(){
+      const pts = dataRef.current || []
+      if (!pts.length) return
+      const p = pts[pts.length -1]
+      if (!p) return
+      if (tooltipRef.current){
+        tooltipRef.current.style.display = 'block'
+        tooltipRef.current.style.left = '50%'
+        tooltipRef.current.style.top = '8px'
+        tooltipRef.current.textContent = `${new Date(p.time*1000).toLocaleTimeString()} — ${p.value.toFixed(2)}`
+        tooltipRef.current.setAttribute('aria-hidden', 'false')
+      }
+    }
+    function onBlur(){
+      if (tooltipRef.current){
+        tooltipRef.current.style.display = 'none'
+        tooltipRef.current.setAttribute('aria-hidden', 'true')
+      }
+    }
+    node.setAttribute('tabindex', '0')
+    node.addEventListener('focus', onFocus)
+    node.addEventListener('blur', onBlur)
+    return ()=>{
+      node.removeEventListener('focus', onFocus)
+      node.removeEventListener('blur', onBlur)
+      node.removeAttribute('tabindex')
     }
   }, [])
 
@@ -146,11 +184,13 @@ export default function ChartPanel({ signals }) {
     return best
   }
 
+  // prepare multi-series legend items (single series now)
+  const legendItems = [{ label: 'Series 1', value: dataRef.current && dataRef.current.length ? dataRef.current[dataRef.current.length-1].value.toFixed(2) : '—' }]
+
   return (
     <div className="chart-panel">
       <div ref={ref} className="chart-area" />
-      <div ref={legendRef} role="status" aria-live="polite" className="chart-legend">Current: —</div>
-      <div ref={tooltipRef} role="tooltip" aria-hidden="true" className="chart-tooltip" />
+      <ChartOverlay legendItems={legendItems} currentValue={legendItems[0].value} tooltipId={'chart-tooltip'} tooltipRef={tooltipRef} legendRef={legendRef} />
     </div>
   )
 }

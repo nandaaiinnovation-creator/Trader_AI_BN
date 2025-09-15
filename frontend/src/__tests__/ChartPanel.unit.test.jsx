@@ -25,12 +25,12 @@ test('ChartPanel renders and has tooltip/legend elements', async ()=>{
   const root = container.querySelector('.chart-panel') || container.firstChild
   expect(root).toBeTruthy()
 
-  // legend should be present
-  const legend = container.querySelector('.chart-legend')
+  // legend should be present (overlay) - query by role/status
+  const legend = container.querySelector('[role="status"]') || container.querySelector('[aria-live="polite"]')
   expect(legend).toBeTruthy()
 
-  // tooltip exists but is hidden by default
-  const tooltip = container.querySelector('.chart-tooltip')
+  // tooltip exists but is hidden by default (query by role)
+  const tooltip = container.querySelector('[role="tooltip"]') || container.getElementById('chart-tooltip')
   expect(tooltip).toBeTruthy()
   expect(tooltip.getAttribute('aria-hidden')).toBe('true')
 
@@ -52,4 +52,10 @@ test('ChartPanel renders and has tooltip/legend elements', async ()=>{
   await waitFor(() => {
     expect(tooltip.getAttribute('aria-hidden')).toBe('false')
   })
+
+  // keyboard: focus the chart area and ensure tooltip is shown for last point
+  act(()=>{ chartArea.focus() })
+  await waitFor(()=> expect(tooltip.getAttribute('aria-hidden')).toBe('false'))
+  // overlay legend should contain current value text
+  await waitFor(()=> expect(legend.textContent).toMatch(/Current:/))
 })

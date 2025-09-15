@@ -35,19 +35,33 @@ exports[`Dashboard snapshot 1`] = `
         >
           <div
             class="chart-area"
+            tabindex="0"
           />
-          <div
-            aria-live="polite"
-            class="chart-legend"
-            role="status"
-          >
-            Current: —
+          <div>
+            <div
+              aria-live="polite"
+              role="status"
+            >
+              <div>
+                <span>
+                  Series 1
+                </span>
+                <span>
+                  —
+                </span>
+              </div>
+              <div
+                aria-hidden="true"
+              >
+                Current: —
+              </div>
+            </div>
+            <div
+              aria-hidden="true"
+              id="chart-tooltip"
+              role="tooltip"
+            />
           </div>
-          <div
-            aria-hidden="true"
-            class="chart-tooltip"
-            role="tooltip"
-          />
         </div>
       </div>
       <section
