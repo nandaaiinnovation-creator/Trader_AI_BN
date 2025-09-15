@@ -1,6 +1,6 @@
 import { BaseRule } from './base';
 import { RuleContext, RuleResult } from '../../types/rules';
-import { atr } from '../../utils/indicators';
+// Note: ATR utility not required directly here; values come from marketState
 
 export default class AdrPdrBreakoutRule extends BaseRule {
   async evaluate(context: RuleContext): Promise<RuleResult> {

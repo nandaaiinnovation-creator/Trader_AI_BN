@@ -41,7 +41,7 @@ Checklist before publishing (must be completed before pushing branch)
 
 - [ ] Update project-level docs to reference CI/publish flow and manual integration runner: `PROJECT_PLAN.md` (reference), `STATUS.md` (updated), and create this PR draft file.
 - [ ] Verify and commit `backend/package-lock.json` if dependencies changed.
-- [ ] Sweep repository for remaining `TODO`/`WIP` placeholders and address or annotate them.
+- [ ] Sweep repository for remaining `TODO`/`WIP` placeholders and address or annotate them. (IN-PROGRESS: agent scanning and resolving small items)
 
 Notes
 

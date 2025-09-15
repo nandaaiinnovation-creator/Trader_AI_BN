@@ -35,9 +35,10 @@ export default class MeanReversionRule extends BaseRule {
     }
 
     // Check recent price action for mean reversion setup
-    const recentCloses = closes.slice(-mean_revert_bars);
-    const recentHighs = highs.slice(-mean_revert_bars);
-    const recentLows = lows.slice(-mean_revert_bars);
+  const _recentCloses = closes.slice(-mean_revert_bars);
+  void _recentCloses;
+  const recentHighs = highs.slice(-mean_revert_bars);
+  const recentLows = lows.slice(-mean_revert_bars);
 
     // Calculate distance from mean (middle BB)
     const distanceFromMean = Math.abs(currentClose - currentMiddle) / currentMiddle;

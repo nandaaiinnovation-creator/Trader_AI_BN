@@ -37,7 +37,7 @@ Notes on coverage artifact removal
 
 Follow-up items (backlog)
 - Issue #23 — Increase rulesEngine test coverage (expand unit & integration tests).
-- Issue #24 — TODO sweep & lint warnings (resolve leftover TODOs, unused variables, and warnings).
+- Issue #24 — TODO sweep & lint warnings (IN-PROGRESS: resolving leftover TODOs and lint warnings; backend lint/typecheck/tests passing locally).
 
 Recommendation
 - Merge this PR first (clean, limited scope). Immediately follow with focused PRs for #23 (tests) and #24 (lint/TODO cleanup) so the Dashboard polish happens after a clean baseline.

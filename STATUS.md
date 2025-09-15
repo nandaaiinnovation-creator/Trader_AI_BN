@@ -69,6 +69,8 @@ Keep a short, up-to-date summary of project progress and the current milestone. 
 - Re-enable `--max-warnings=0` in ESLint and fix all legacy lint violations. This is a medium-term effort that should be tracked as a separate milestone.
 - Evaluate bumping `engines.node` from `18` → `22` once CI and local environments are aligned. Update CI and `engines` only after verification across the team.
 
+For a consolidated list of deferred TODOs and follow-ups found during the sweep, see `docs/TODOs.md`.
+
 ### Node / CI runtime note
 
 - Project runs on Node `18.x` in CI (GitHub Actions workflows are pinned to Node 18). Local Node `22.x` may work but is not guaranteed; developers should prefer Node 18 for parity with CI.
@@ -109,8 +111,7 @@ Milestone policy (short):
 - [x] Docs: backend docs and examples added
 - [x] Create `PR_DRAFT_ZERODHA_LIVE_INTEGRATION.md` in repo root
 - [x] Confirm and commit `backend/package-lock.json` if dependencies changed
-- [ ] Final TODO/placeholder sweep
- - [ ] Final TODO/placeholder sweep
+ - [ ] Final TODO/placeholder sweep (IN-PROGRESS: scanned docs and source; resolving small items now)
 
 ---
 
