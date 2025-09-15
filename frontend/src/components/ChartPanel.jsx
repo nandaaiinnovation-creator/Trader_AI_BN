@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react'
 import { createChart } from 'lightweight-charts'
+import '../styles/chart.css'
 
 export default function ChartPanel({ signals }) {
   const ref = useRef(null)
@@ -126,11 +127,30 @@ export default function ChartPanel({ signals }) {
     }
   }, [])
 
+  // helper: find nearest point to an X coordinate
+  function findNearestPoint(x, rect){
+    const pts = dataRef.current || []
+    if (!pts.length) return null
+    // compute index by proportional position, then scan +/- a small window for nearest time
+    const proportional = x / rect.width
+    let idx = Math.max(0, Math.min(pts.length - 1, Math.floor(proportional * pts.length)))
+    // scan +/- 3 indices for nearest by pixel distance
+    let best = pts[idx]
+    let bestDist = Math.abs(idx - proportional * pts.length)
+    for (let delta = -3; delta <= 3; delta++){
+      const j = idx + delta
+      if (j < 0 || j >= pts.length) continue
+      const d = Math.abs(j - proportional * pts.length)
+      if (d < bestDist){ bestDist = d; best = pts[j] }
+    }
+    return best
+  }
+
   return (
-    <div className="chart-panel" style={{ width: '100%', height: 360, position: 'relative' }}>
-      <div ref={ref} style={{ width: '100%', height: '100%' }} />
-      <div ref={legendRef} role="status" aria-live="polite" className="chart-legend" style={{position:'absolute', right:8, top:8, background:'#fff', padding:'4px 8px', borderRadius:4, boxShadow:'0 1px 3px rgba(0,0,0,0.08)', fontSize:12}}>Current: —</div>
-      <div ref={tooltipRef} role="tooltip" aria-hidden="true" className="chart-tooltip" style={{display:'none', position:'absolute', pointerEvents:'none', transform:'translateX(-50%)', background:'#222', color:'#fff', padding:'6px 8px', borderRadius:4, fontSize:12}} />
+    <div className="chart-panel">
+      <div ref={ref} className="chart-area" />
+      <div ref={legendRef} role="status" aria-live="polite" className="chart-legend">Current: —</div>
+      <div ref={tooltipRef} role="tooltip" aria-hidden="true" className="chart-tooltip" />
     </div>
   )
 }

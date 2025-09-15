@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">85.36% </span>
+                <span class="strong">70.7% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>70/82</span>
+                <span class='fraction'>70/99</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">50% </span>
+                <span class="strong">40% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>20/40</span>
+                <span class='fraction'>20/50</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">75% </span>
+                <span class="strong">70.58% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>12/16</span>
+                <span class='fraction'>12/17</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">91.3% </span>
+                <span class="strong">77.77% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>63/69</span>
+                <span class='fraction'>63/81</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line medium'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -199,7 +199,28 @@
 <a name='L134'></a><a href='#L134'>134</a>
 <a name='L135'></a><a href='#L135'>135</a>
 <a name='L136'></a><a href='#L136'>136</a>
-<a name='L137'></a><a href='#L137'>137</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L137'></a><a href='#L137'>137</a>
+<a name='L138'></a><a href='#L138'>138</a>
+<a name='L139'></a><a href='#L139'>139</a>
+<a name='L140'></a><a href='#L140'>140</a>
+<a name='L141'></a><a href='#L141'>141</a>
+<a name='L142'></a><a href='#L142'>142</a>
+<a name='L143'></a><a href='#L143'>143</a>
+<a name='L144'></a><a href='#L144'>144</a>
+<a name='L145'></a><a href='#L145'>145</a>
+<a name='L146'></a><a href='#L146'>146</a>
+<a name='L147'></a><a href='#L147'>147</a>
+<a name='L148'></a><a href='#L148'>148</a>
+<a name='L149'></a><a href='#L149'>149</a>
+<a name='L150'></a><a href='#L150'>150</a>
+<a name='L151'></a><a href='#L151'>151</a>
+<a name='L152'></a><a href='#L152'>152</a>
+<a name='L153'></a><a href='#L153'>153</a>
+<a name='L154'></a><a href='#L154'>154</a>
+<a name='L155'></a><a href='#L155'>155</a>
+<a name='L156'></a><a href='#L156'>156</a>
+<a name='L157'></a><a href='#L157'>157</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -325,6 +346,25 @@
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
@@ -337,6 +377,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import React, { useEffect, useRef } from 'react'
 import { createChart } from 'lightweight-charts'
+import '../styles/chart.css'
 &nbsp;
 export default function ChartPanel({ signals }) {
   const ref = useRef(null)
@@ -463,11 +504,30 @@ export default function ChartPanel({ signals }) {
     }
   }, [])
 &nbsp;
+  // helper: find nearest point to an X coordinate
+  function <span class="fstat-no" title="function not covered" >findNearestPoint(</span>x, rect){
+    const pts = <span class="cstat-no" title="statement not covered" >dataRef.current || []</span>
+<span class="cstat-no" title="statement not covered" >    if (!pts.length) <span class="cstat-no" title="statement not covered" >return null</span></span>
+    // compute index by proportional position, then scan +/- a small window for nearest time
+    const proportional = <span class="cstat-no" title="statement not covered" >x / rect.width</span>
+    let idx = <span class="cstat-no" title="statement not covered" >Math.max(0, Math.min(pts.length - 1, Math.floor(proportional * pts.length)))</span>
+    // scan +/- 3 indices for nearest by pixel distance
+    let best = <span class="cstat-no" title="statement not covered" >pts[idx]</span>
+    let bestDist = <span class="cstat-no" title="statement not covered" >Math.abs(idx - proportional * pts.length)</span>
+<span class="cstat-no" title="statement not covered" >    for (let delta = <span class="cstat-no" title="statement not covered" >-3;</span> delta &lt;= 3; delta++){</span>
+      const j = <span class="cstat-no" title="statement not covered" >idx + delta</span>
+<span class="cstat-no" title="statement not covered" >      if (j &lt; 0 || j &gt;= pts.length) <span class="cstat-no" title="statement not covered" >continue</span></span>
+      const d = <span class="cstat-no" title="statement not covered" >Math.abs(j - proportional * pts.length)</span>
+<span class="cstat-no" title="statement not covered" >      if (d &lt; bestDist){ <span class="cstat-no" title="statement not covered" >bestDist = d; <span class="cstat-no" title="statement not covered" ></span>best = pts[j] </span>}</span>
+    }
+<span class="cstat-no" title="statement not covered" >    return best</span>
+  }
+&nbsp;
   return (
-    &lt;div className="chart-panel" style={{ width: '100%', height: 360, position: 'relative' }}&gt;
-      &lt;div ref={ref} style={{ width: '100%', height: '100%' }} /&gt;
-      &lt;div ref={legendRef} role="status" aria-live="polite" className="chart-legend" style={{position:'absolute', right:8, top:8, background:'#fff', padding:'4px 8px', borderRadius:4, boxShadow:'0 1px 3px rgba(0,0,0,0.08)', fontSize:12}}&gt;Current: —&lt;/div&gt;
-      &lt;div ref={tooltipRef} role="tooltip" aria-hidden="true" className="chart-tooltip" style={{display:'none', position:'absolute', pointerEvents:'none', transform:'translateX(-50%)', background:'#222', color:'#fff', padding:'6px 8px', borderRadius:4, fontSize:12}} /&gt;
+    &lt;div className="chart-panel"&gt;
+      &lt;div ref={ref} className="chart-area" /&gt;
+      &lt;div ref={legendRef} role="status" aria-live="polite" className="chart-legend"&gt;Current: —&lt;/div&gt;
+      &lt;div ref={tooltipRef} role="tooltip" aria-hidden="true" className="chart-tooltip" /&gt;
     &lt;/div&gt;
   )
 }
@@ -478,7 +538,7 @@ export default function ChartPanel({ signals }) {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-09-15T06:19:55.948Z
+                at 2025-09-15T06:29:00.740Z
             </div>
         <script src="../prettify.js"></script>
         <script>

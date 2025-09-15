@@ -32,16 +32,14 @@ exports[`Dashboard snapshot 1`] = `
         </div>
         <div
           class="chart-panel"
-          style="width: 100%; height: 360px; position: relative;"
         >
           <div
-            style="width: 100%; height: 100%;"
+            class="chart-area"
           />
           <div
             aria-live="polite"
             class="chart-legend"
             role="status"
-            style="position: absolute; right: 8px; top: 8px; background: rgb(255, 255, 255); padding: 4px 8px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); font-size: 12px;"
           >
             Current: —
           </div>
@@ -49,7 +47,6 @@ exports[`Dashboard snapshot 1`] = `
             aria-hidden="true"
             class="chart-tooltip"
             role="tooltip"
-            style="display: none; position: absolute; pointer-events: none; transform: translateX(-50%); background: rgb(34, 34, 34); color: rgb(255, 255, 255); padding: 6px 8px; border-radius: 4px; font-size: 12px;"
           />
         </div>
       </div>
