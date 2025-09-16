@@ -1,0 +1,7 @@
+.overlay{position:relative}
+.legend{position:absolute; right:8px; top:8px; background:var(--chart-legend-bg); color:var(--chart-legend-color); padding:4px 8px; border-radius:var(--chart-radius); box-shadow:0 1px 3px rgba(0,0,0,0.08); font-size:var(--chart-font-size)}
+.legendItem{display:flex; justify-content:space-between; gap:8px}
+.legendLabel{font-weight:600; margin-right:6px}
+.legendValue{color:var(--chart-legend-color)}
+.tooltip{display:block; position:absolute; pointer-events:none; transform:translateX(-50%); background:var(--chart-tooltip-bg); color:var(--chart-tooltip-color); padding:6px 8px; border-radius:var(--chart-radius); font-size:var(--chart-font-size)}
+.current{font-size:12px; margin-top:4px}

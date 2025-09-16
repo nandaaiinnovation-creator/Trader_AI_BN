@@ -1,0 +1,120 @@
+name: Frontend E2E
+
+on:
+  push:
+    branches: ['feat/**']
+  pull_request:
+    branches: [main]
+
+# For test runs we allow enabling a guarded esbuild fix step via the job-level env var
+env:
+  ENABLE_ESBUILD_FIX: 'true'
+
+jobs:
+  e2e:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: 'CI: run e2e.lock check (non-fatal)'
+        id: lock-check
+        working-directory: frontend
+        shell: pwsh
+        run: |
+          # Robust PowerShell-friendly lock-check: capture stdout/stderr, do NOT abort the job
+          try {
+            # Run the lock-check script and capture all streams to a file. Use a non-terminating grip
+            # so we can inspect the exit code and still succeed the step.
+            node .\scripts\check-e2e-lock-ci.js *> check-e2e-lock.out
+            $code = $LASTEXITCODE
+          } catch {
+            Write-Host "Node lock-check threw an exception: $_"
+            # Ensure we still have the last exit code available
+            $code = $LASTEXITCODE
+          }
+
+          # Try to write outputs for the workflow; guard each write so failures here don't fail the step
+          try {
+            if ($code -ne 0) {
+              Add-Content -Path $env:GITHUB_OUTPUT -Value "lock_check_failed=true"
+            } else {
+              Add-Content -Path $env:GITHUB_OUTPUT -Value "lock_check_failed=false"
+            }
+
+            Add-Content -Path $env:GITHUB_OUTPUT -Value "check_output<<EOF"
+            Add-Content -Path $env:GITHUB_OUTPUT -Value (Get-Content .\check-e2e-lock.out -Raw)
+            Add-Content -Path $env:GITHUB_OUTPUT -Value "EOF"
+          } catch {
+            Write-Host "Warning: unable to write full outputs to GITHUB_OUTPUT: $_"
+            # Best-effort fallback: if GITHUB_OUTPUT exists, write a minimal marker
+            if ($env:GITHUB_OUTPUT) {
+              try { Add-Content -Path $env:GITHUB_OUTPUT -Value "lock_check_failed=true" } catch { Write-Host "fallback write failed: $_" }
+            }
+          }
+
+          # Always exit zero so this check remains non-fatal for the job
+          exit 0
+
+      - name: 'Optional: Try Windows esbuild fix'
+        if: ${{ env.ENABLE_ESBUILD_FIX == 'true' }}
+        working-directory: frontend
+        shell: pwsh
+        run: |
+          Write-Host "ENABLE_ESBUILD_FIX=true — attempting to run fix-windows-esbuild.ps1 (non-fatal)"
+          try {
+            # Use the call operator so PowerShell resolves the script path correctly
+            & .\scripts\fix-windows-esbuild.ps1
+            Write-Host "fix-windows-esbuild.ps1 completed (exit code: $LASTEXITCODE)"
+          } catch {
+            Write-Host "Warning: fix-windows-esbuild.ps1 failed or not found: $_"
+          }
+          # Do not fail the job if the fix script isn't available or fails; it's best-effort
+          exit 0
+
+      - name: Install dependencies (include devDependencies)
+        working-directory: frontend
+        env:
+          NPM_CONFIG_PRODUCTION: 'false'
+        run: npm ci --include=dev
+      
+      # Debug step removed: caused workflow schema/lint failures. The deeper diagnostics remain in frontend/scripts/preflight-check.js
+      
+      - name: Run frontend preflight checks
+        working-directory: frontend
+        # Call the node script directly to avoid depending on package.json 'scripts' being present
+        run: node ./scripts/preflight-check.js
+
+      - name: Post PR comment if lock check failed
+        if: ${{ github.event_name == 'pull_request' && steps.lock-check.outputs.lock_check_failed == 'true' }}
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const lockPath = './frontend/e2e.lock';
+            const checkPath = './frontend/check-e2e-lock.out';
+            let body = '⚠️ E2E run blocked: an active e2e.lock was detected on the runner.';
+            body += '\n\n**Quick remediation**: close editors/terminals that may be running Node on the runner, or ask the runner owner to run `node ./scripts/cleanup-stale-lock.js --confirm` if the lock is stale.';
+            if (fs.existsSync(lockPath)) { try { const lock = fs.readFileSync(lockPath, 'utf8'); body += '\n\n**e2e.lock contents:**\n```\n' + lock + '\n```'; } catch (e) { body += '\n\n(e2e.lock exists but could not be read)'; } } else { body += '\n\nNote: `e2e.lock` file not found in workspace; check the lock-check output below for details.'; }
+            if (fs.existsSync(checkPath)){ try { const out = fs.readFileSync(checkPath, 'utf8'); body += '\n\n**Lock-check output:**\n```\n' + out + '\n```'; } catch (e) { body += '\n\n(Could not read lock-check output)'; } }
+            const pr = context.payload.pull_request; if (!pr) throw new Error('No pull_request context available');
+            await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: pr.number, body });
+
+      - name: Run E2E orchestrator
+        working-directory: frontend
+        run: node ./scripts/run-e2e.js
+
+      - name: Upload artifacts zip (if created)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-artifacts
+          path: |
+            frontend/e2e-artifacts-*.zip
+            frontend/e2e-artifacts/**
