@@ -331,16 +331,16 @@ async function run(){
 
   // wait briefly for the test server to start and respond to health
   // give the server a little more time to initialize on CI hosts
-  await new Promise(r => setTimeout(r, 1500))
+  await new Promise(r => setTimeout(r, 2000))
 
   // Start tailing the server log so CI shows progress while we wait for health
   const serverTail = startLogTail(serverLogPath, '[test-server]')
 
   // wait for test server health endpoint
   try {
-    console.log('Waiting for test server health at http://localhost:4001/health')
-    // increase to 30s on CI to reduce flakiness on slower runners
-    await waitForUrl('http://localhost:4001/health', 30000)
+  console.log('Waiting for test server health at http://localhost:4001/health')
+  // increase to 90s on CI to reduce flakiness on slower runners
+  await waitForUrl('http://localhost:4001/health', 90000)
     console.log('Test server ready')
     // stop tailing once healthy
     try { serverTail.stop() } catch (e) {}
@@ -387,9 +387,9 @@ async function run(){
 
   // wait for frontend to be ready (if started)
   if (!noDev){
-    const url = 'http://localhost:5173/'
-    console.log('Waiting for frontend dev server to become available at', url)
-    try { await waitForUrl(url, 30000); console.log('Frontend dev server ready') } catch (err){ console.warn('Frontend did not become ready in time:', err.message) }
+  const url = 'http://localhost:5173/'
+  console.log('Waiting for frontend dev server to become available at', url)
+  try { await waitForUrl(url, 90000); console.log('Frontend dev server ready') } catch (err){ console.warn('Frontend did not become ready in time:', err.message) }
   }
 
   if (dryRun){
