@@ -99,7 +99,7 @@ jobs:
 
       - name: Run E2E orchestrator
         working-directory: frontend
-        run: node ./scripts/run-e2e.js --skip-install
+        run: node ./scripts/run-e2e.js
 
       - name: Upload artifacts zip (if created)
         if: always()
