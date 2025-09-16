@@ -298,15 +298,52 @@ async function run(){
   process.on('SIGTERM', async () => { await teardown(); process.exit(0) })
 
   // wait briefly for the test server to start and respond to health
-  await new Promise(r => setTimeout(r, 800))
+  // give the server a little more time to initialize on CI hosts
+  await new Promise(r => setTimeout(r, 1500))
 
   // wait for test server health endpoint
   try {
     console.log('Waiting for test server health at http://localhost:4001/health')
-    await waitForUrl('http://localhost:4001/health', 10000)
+    // increase to 30s on CI to reduce flakiness on slower runners
+    await waitForUrl('http://localhost:4001/health', 30000)
     console.log('Test server ready')
   } catch (err) {
     console.warn('Test server did not become ready:', err.message)
+    // collect diagnostics: dump tail of server & dev logs to help triage flaky startups
+    try {
+      const diagPath = path.join(artifactsDir, 'diagnostics.txt')
+      const linesToDump = 200
+      let out = []
+      out.push('--- Test server health check failed: ' + new Date().toISOString() + '\n')
+      out.push('Health check error: ' + (err && err.message) + '\n')
+      out.push('Server PID: ' + (server && server.pid) + '\n')
+      if (fs.existsSync(serverLogPath)){
+        try {
+          const s = fs.readFileSync(serverLogPath, 'utf8').split(/\r?\n/)
+          out.push('\n=== Last ' + linesToDump + ' lines of test server stdout/stderr ===\n')
+          out.push(s.slice(-linesToDump).join('\n'))
+        } catch (re) {
+          out.push('\nFailed to read server log: ' + re.message + '\n')
+        }
+      } else {
+        out.push('\nNo server log found at ' + serverLogPath + '\n')
+      }
+      if (fs.existsSync(devLogPath)){
+        try {
+          const d = fs.readFileSync(devLogPath, 'utf8').split(/\r?\n/)
+          out.push('\n=== Last ' + linesToDump + ' lines of dev server log ===\n')
+          out.push(d.slice(-linesToDump).join('\n'))
+        } catch (re) {
+          out.push('\nFailed to read dev log: ' + re.message + '\n')
+        }
+      } else {
+        out.push('\nNo dev log found at ' + devLogPath + '\n')
+      }
+      try { fs.writeFileSync(diagPath, out.join('\n'), 'utf8') } catch (we) { console.warn('Failed to write diagnostics file:', we && we.message) }
+      console.warn('Wrote diagnostics to:', path.join(artifactsDir, 'diagnostics.txt'))
+    } catch (diagErr) {
+      console.warn('Failed to collect diagnostics:', diagErr && diagErr.message)
+    }
   }
 
   // wait for frontend to be ready (if started)
