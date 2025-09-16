@@ -66,8 +66,16 @@ jobs:
         working-directory: frontend
         shell: pwsh
         run: |
-          Write-Host "ENABLE_ESBUILD_FIX=true — running fix-windows-esbuild.ps1"
-          .\scripts\fix-windows-esbuild.ps1
+          Write-Host "ENABLE_ESBUILD_FIX=true — attempting to run fix-windows-esbuild.ps1 (non-fatal)"
+          try {
+            # Use the call operator so PowerShell resolves the script path correctly
+            & .\scripts\fix-windows-esbuild.ps1
+            Write-Host "fix-windows-esbuild.ps1 completed (exit code: $LASTEXITCODE)"
+          } catch {
+            Write-Host "Warning: fix-windows-esbuild.ps1 failed or not found: $_"
+          }
+          # Do not fail the job if the fix script isn't available or fails; it's best-effort
+          exit 0
 
       - name: Install dependencies
         working-directory: frontend
