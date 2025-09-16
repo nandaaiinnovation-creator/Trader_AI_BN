@@ -4,20 +4,46 @@
 const pkg = require('../package.json');
 console.log('Preflight check: cwd=', process.cwd());
 console.log('Node version:', process.version);
+console.log('NODE_ENV=', process.env.NODE_ENV);
+console.log('NPM_CONFIG_PRODUCTION=', process.env.NPM_CONFIG_PRODUCTION);
 try {
-  const archiver = require('archiver');
-  console.log('archiver:', require('archiver/package.json').version);
+  const fs = require('fs');
+  const nm = 'node_modules';
+  if (fs.existsSync(nm)) {
+    const entries = fs.readdirSync(nm).slice(0, 40);
+    console.log('node_modules entries (first 40):', entries.join(', '));
+  } else {
+    console.log('node_modules directory not present');
+  }
+} catch (e) {
+  console.warn('Failed to list node_modules:', e && e.message);
+}
+try {
+  // prefer require.resolve to show exact resolution path or error
+  try {
+    const path = require.resolve('archiver');
+    console.log('archiver resolved to:', path);
+    console.log('archiver version:', require('archiver/package.json').version);
+  } catch (er) {
+    console.error('archiver require.resolve failed:', er && er.message);
+    throw er;
+  }
 } catch (e) {
   console.error('Missing module: archiver');
   process.exitCode = 2;
 }
 try {
-  const cypress = require('cypress');
-  // cypress may not export a version via package.json directly when installed globally; try package.json
   try {
-    console.log('cypress:', require('cypress/package.json').version);
-  } catch (e) {
-    console.log('cypress required (module present)');
+    const path = require.resolve('cypress');
+    console.log('cypress resolved to:', path);
+    try {
+      console.log('cypress version:', require('cypress/package.json').version);
+    } catch (e) {
+      console.log('cypress module present but version read failed');
+    }
+  } catch (er) {
+    console.error('cypress require.resolve failed:', er && er.message);
+    throw er;
   }
 } catch (e) {
   console.error('Missing module: cypress');
