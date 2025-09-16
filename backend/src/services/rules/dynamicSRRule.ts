@@ -12,7 +12,10 @@ interface SRLevel {
 export default class DynamicSRRule extends BaseRule {
   async evaluate(context: RuleContext): Promise<RuleResult> {
     this.validateConfig(['sr_lookback', 'touch_threshold', 'proximity_pct']);
-    const { sr_lookback, touch_threshold, proximity_pct } = this.config.params;
+  const { sr_lookback, proximity_pct } = this.config.params;
+  // touch_threshold reserved for future use
+  const _touch_threshold = (this.config.params as any).touch_threshold;
+  void _touch_threshold;
 
     const candles = context.candles;
     if (candles.length < sr_lookback) {
@@ -94,10 +97,14 @@ export default class DynamicSRRule extends BaseRule {
   private identifySRLevels(candles: any[]): SRLevel[] {
     const highs = candles.map(c => c.high);
     const lows = candles.map(c => c.low);
-    const closes = candles.map(c => c.close);
+  const closes = candles.map(c => c.close);
+  void closes;
 
   // Find pivot points using highs and lows so flat highs/lows are captured as pivots
   const { highs: highPivots, lows: lowPivots } = findPivots(highs, 5);
+  // lowPivots is intentionally unused because we compute combinedLowPivots separately
+  const _lowPivots = lowPivots;
+  void _lowPivots;
   // For bottom pivots use lows array
   const lowPivotResult = findPivots(lows, 5);
   // merge low pivots into lowPivots if needed

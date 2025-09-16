@@ -1,5 +1,4 @@
 import 'reflect-metadata';
-import 'reflect-metadata';
 import express, { Request, Response } from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -8,13 +7,15 @@ import { redisClient } from './utils/helpers';
 import { logger } from './utils/logger';
 import api from './api';
 import { setupWebSocket } from './ws/socket';
+import { registerBroadcaster } from './utils/broadcast';
 import { gracefulShutdown } from './utils/helpers';
 import SignalOrchestrator from './services/signalOrchestrator';
 import { setOrchestrator } from './services/orchestratorSingleton';
 import { setupOrchestrator } from './services/orchestrator';
-import { createRulesEngineFromDb, RulesEngine } from './services/rules';
+import { createRulesEngineFromDb } from './services/rules';
 import path from 'path';
 import fs from 'fs';
+import { pathToFileURL } from 'url';
 
 const app = express();
 app.use(express.json());
@@ -26,7 +27,10 @@ app.get('/health', (_req: Request, res: Response) => {
 app.use('/api', api);
 
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: '*' } });
+export const io = new Server(server, { cors: { origin: '*' } });
+
+// register io with broadcast helper so route handlers can emit without requiring index
+registerBroadcaster(io);
 
 // Healthcheck endpoint
 app.get('/api/health', (_req: Request, res: Response) => {
@@ -75,14 +79,15 @@ export async function start() {
         for (const file of files) {
           try {
             const modPath = path.join(rulesDir, file);
-            const mod = require(modPath);
-            const RuleClass = mod && (mod.default || mod);
+            // Use dynamic import with file URL to avoid `require` and satisfy lint rules
+            const mod = await import(pathToFileURL(modPath).href);
+          const RuleClass = mod && (mod.default || mod);
             if (typeof RuleClass === 'function') {
               // instantiate and register
               const instance = new RuleClass();
               const ruleName = instance.name || path.basename(file, path.extname(file));
               // register a wrapper that delegates to the instance.evaluate(ctx)
-              engine.registerRule(ruleName, async (input: any, cfg?: any) => {
+              engine.registerRule(ruleName, async (input: any, _cfg?: any) => {
                 try {
                   const res = await instance.evaluate(input);
                   return { id: ruleName, name: ruleName, passed: !!res.passed, score: res.score || 0, meta: res };

@@ -69,6 +69,8 @@ Keep a short, up-to-date summary of project progress and the current milestone. 
 - Re-enable `--max-warnings=0` in ESLint and fix all legacy lint violations. This is a medium-term effort that should be tracked as a separate milestone.
 - Evaluate bumping `engines.node` from `18` → `22` once CI and local environments are aligned. Update CI and `engines` only after verification across the team.
 
+For a consolidated list of deferred TODOs and follow-ups found during the sweep, see `docs/TODOs.md`.
+
 ### Node / CI runtime note
 
 - Project runs on Node `18.x` in CI (GitHub Actions workflows are pinned to Node 18). Local Node `22.x` may work but is not guaranteed; developers should prefer Node 18 for parity with CI.
@@ -109,8 +111,7 @@ Milestone policy (short):
 - [x] Docs: backend docs and examples added
 - [x] Create `PR_DRAFT_ZERODHA_LIVE_INTEGRATION.md` in repo root
 - [x] Confirm and commit `backend/package-lock.json` if dependencies changed
-- [ ] Final TODO/placeholder sweep
- - [ ] Final TODO/placeholder sweep
+ - [ ] Final TODO/placeholder sweep (IN-PROGRESS: scanned docs and source; resolving small items now)
 
 ---
 
@@ -125,12 +126,11 @@ Milestone policy (short):
 ### Proposed next milestone: Frontend Dashboard (minimal)
 
 Definition of Done (DoD):
-- Implement minimal API endpoints required by the dashboard (if missing): `GET /api/signals`, `GET /api/rules`, `GET /api/health` (health already present).
-- Add a lightweight React + Vite app scaffold in `frontend/` with a `Dashboard` page that subscribes to Socket.IO signals and renders a simple signal list and latest rule config.
-- Add frontend README with run steps and a development Docker target for local demo (optional).
-- Add end-to-end smoke validation in CI (manual or optional): confirm server serves a static build artifact or health endpoint used by the UI.
-- Update documentation: `PROJECT_PLAN.md` and `STATUS.md` with the milestone DoD and expected artifacts.
-- Ensure CI passes: unit tests + infra smoke tests continue to pass.
+- Create a `feature/frontend-dashboard-minimal` branch with a lightweight Vite+React scaffold in `frontend/`.
+- Minimal dashboard page that connects to backend Socket.IO and displays recent signals.
+- `README.md` with local run instructions and a dev proxy to backend.
+- Open a Pull Request for the scaffold and link the milestone DoD in the PR description.
+- Keep Issue #23 (rulesEngine coverage) and Issue #24 (TODO sweep) open as parallel work; do not block this milestone on them.
 
 Priority & scope notes: This is intentionally scoped small — a single-page dashboard that consumes the existing backend API and Socket.IO feed, with a focus on demoability rather than a finished UI. Completing this milestone unblocks Backtesting (by providing a UI to view signals) and Frontend-driven QA.
 

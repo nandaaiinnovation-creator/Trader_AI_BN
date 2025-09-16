@@ -2,7 +2,6 @@ import React, {useEffect, useState, useRef} from 'react'
 import { io } from 'socket.io-client'
 import ChartPanel from '../components/ChartPanel'
 import RulesPanel from '../components/RulesPanel'
-import '../styles/dashboard.css'
 
 export default function Dashboard(){
   const [connected, setConnected] = useState(false)
@@ -35,26 +34,22 @@ export default function Dashboard(){
   },[])
 
   return (
-    <div className="bn-dashboard">
+    <div style={{display:'grid', gridTemplateColumns:'2fr 1fr', gap: 12}}>
       <div>
-        <header className="bn-header">
-          <h2 style={{margin:0}}>Signal feed</h2>
-          <div style={{fontSize:12, color: connected ? '#2e7d32' : '#c62828'}}>Socket: {connected ? 'connected' : 'disconnected'}</div>
+        <header style={{display:'flex', justifyContent:'space-between'}}>
+          <h2>Signal feed</h2>
+          <div>Socket: {connected ? 'connected' : 'disconnected'}</div>
         </header>
-        <div className="bn-card" style={{marginTop:12, position:'relative'}}>
-          <div className="chart-current-value">Current: —</div>
-          <ChartPanel signals={events} />
-        </div>
-
-        <section style={{marginTop:12}} className="bn-card">
-          <h3 style={{marginTop:0}}>Recent signals</h3>
-          <ul className="bn-recent-list">
-            {events.map((ev, i)=> <li key={i}>{ev.symbol} <strong style={{marginLeft:6}}>{ev.signal}</strong> <span style={{color:'#666', marginLeft:8}}>@{new Date(ev.timestamp).toLocaleTimeString()}</span> <em style={{float:'right', color:'#999'}}>{ev.rule_name}</em></li>)}
+        <ChartPanel signals={events} />
+        <section style={{marginTop:12}}>
+          <h3>Recent signals</h3>
+          <ul>
+            {events.map((ev, i)=> <li key={i}>{ev.symbol} {ev.signal} @{new Date(ev.timestamp).toLocaleTimeString()} [{ev.rule_name}]</li>)}
           </ul>
         </section>
       </div>
-      <aside className="bn-aside">
-        <div className="bn-card"><RulesPanel /></div>
+      <aside>
+        <RulesPanel />
       </aside>
     </div>
   )

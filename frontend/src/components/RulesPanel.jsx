@@ -38,7 +38,7 @@ export default function RulesPanel(){
     try {
       const j = await upsertRuleConfig(rule.name, { enabled: !rule.enabled, config: rule.config || {} })
       // reconcile with authoritative server response
-      setRules(prev => prev.map(r=> r.name===j.data.name ? j.data : r))
+  setRules(prev => prev.map(r=> r.name===j.data.name ? j.data : r))
     } catch (err) {
       // rollback optimistic update on error
       setRules(original)

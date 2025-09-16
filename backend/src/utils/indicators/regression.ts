@@ -17,17 +17,16 @@ export function linearRegression(prices: number[], period: number): LinearRegres
     let sumY = 0;
     let sumXY = 0;
     let sumXX = 0;
-    let sumYY = 0;
 
     for (let i = 0; i < n; i++) {
         sumX += x[i];
         sumY += y[i];
         sumXY += x[i] * y[i];
         sumXX += x[i] * x[i];
-        sumYY += y[i] * y[i];
     }
 
-    const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+    const denom = (n * sumXX - sumX * sumX) || 1; // guard against zero
+    const slope = (n * sumXY - sumX * sumY) / denom;
     const intercept = (sumY - slope * sumX) / n;
 
     // Calculate R-squared
@@ -41,7 +40,7 @@ export function linearRegression(prices: number[], period: number): LinearRegres
         residualSS += Math.pow(y[i] - yPred, 2);
     }
 
-    const r2 = 1 - (residualSS / totalSS);
+    const r2 = totalSS === 0 ? 0 : 1 - (residualSS / totalSS);
 
     return { slope, intercept, r2 };
 }

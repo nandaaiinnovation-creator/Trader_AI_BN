@@ -1,26 +1,18 @@
-export async function getRuleConfigs(){
-  // Simple wrapper around fetch — returns { data: [...] }
-  try{
-    const res = await fetch('/api/rules')
-    const json = await res.json()
-    return { data: json }
-  } catch (err){
-    return { data: [] }
-  }
+export async function getRuleConfigs() {
+  const res = await fetch('/api/rules/config');
+  if (!res.ok) throw new Error('Failed to fetch rule configs');
+  return res.json();
 }
 
-export async function upsertRuleConfig(name, payload){
-  try{
-    const res = await fetch(`/api/rules/${encodeURIComponent(name)}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-    const json = await res.json()
-    return { data: json }
-  } catch (err){
-    throw err
+export async function upsertRuleConfig(name, body) {
+  const res = await fetch(`/api/rules/config/${encodeURIComponent(name)}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Upsert failed: ${res.status} ${text}`);
   }
+  return res.json();
 }
-
-export default { getRuleConfigs, upsertRuleConfig }

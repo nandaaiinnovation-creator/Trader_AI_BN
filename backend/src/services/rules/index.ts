@@ -47,7 +47,7 @@ export async function createRulesEngineFromDb(): Promise<RulesEngine> {
   for (const cfg of configs) {
     // Register a placeholder rule fn. Real rule logic will be registered by rule implementations using engine.registerRule
     const id = cfg.name;
-    engine.registerRule(id, async (input: any) => ({ id, name: id, passed: !!cfg.enabled, score: cfg.enabled ? 1 : 0, meta: { fromDb: true } }));
+  engine.registerRule(id, async (_input: any) => ({ id, name: id, passed: !!cfg.enabled, score: cfg.enabled ? 1 : 0, meta: { fromDb: true } }));
   }
 
   return engine;
