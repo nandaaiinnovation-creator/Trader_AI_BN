@@ -1,0 +1,8 @@
+:root{
+  --bn-bg: #f9fafb;
+  --bn-card-bg: #ffffff;
+  --bn-border: #e6e6e6;
+  --bn-accent: #2b8bd1;
+}
+body { font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background: var(--bn-bg); color: #111 }
+.chart-current-value { position:absolute; right:12px; top:12px; background: rgba(255,255,255,0.9); padding:6px 8px; border-radius:6px; border:1px solid var(--bn-border); font-size:13px }

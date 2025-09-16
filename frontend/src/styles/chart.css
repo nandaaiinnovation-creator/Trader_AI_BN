@@ -1,0 +1,14 @@
+:root{
+  --chart-tooltip-bg: #222;
+  --chart-tooltip-color: #fff;
+  --chart-legend-bg: #fff;
+  --chart-legend-color: #222;
+  --chart-radius: 4px;
+  --chart-font-size: 12px;
+}
+
+.chart-panel{ width:100%; height:360px; position:relative }
+.chart-area{ width:100%; height:100% }
+.chart-legend{ position:absolute; right:8px; top:8px; background:var(--chart-legend-bg); color:var(--chart-legend-color); padding:4px 8px; border-radius:var(--chart-radius); box-shadow:0 1px 3px rgba(0,0,0,0.08); font-size:var(--chart-font-size) }
+.chart-tooltip{ display:none; position:absolute; pointer-events:none; transform:translateX(-50%); background:var(--chart-tooltip-bg); color:var(--chart-tooltip-color); padding:6px 8px; border-radius:var(--chart-radius); font-size:var(--chart-font-size) }
+.chart-current-value{ position:absolute; left:8px; top:8px; font-size:12px }
