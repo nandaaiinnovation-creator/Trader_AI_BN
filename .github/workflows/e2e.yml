@@ -27,9 +27,19 @@ jobs:
         working-directory: frontend
         shell: pwsh
         run: |
-          node .\scripts\check-e2e-lock-ci.js *> check-e2e-lock.out || exit 0
-          $code = $LASTEXITCODE
-          if ($code -ne 0) { Add-Content -Path $env:GITHUB_OUTPUT -Value "lock_check_failed=true" } else { Add-Content -Path $env:GITHUB_OUTPUT -Value "lock_check_failed=false" }
+          # PowerShell-friendly lock-check: capture stdout/stderr, do not abort the job
+          try {
+            node .\scripts\check-e2e-lock-ci.js *> check-e2e-lock.out
+            $code = $LASTEXITCODE
+          } catch {
+            # In case node process throws, still capture exit code
+            $code = $LASTEXITCODE
+          }
+          if ($code -ne 0) {
+            Add-Content -Path $env:GITHUB_OUTPUT -Value "lock_check_failed=true"
+          } else {
+            Add-Content -Path $env:GITHUB_OUTPUT -Value "lock_check_failed=false"
+          }
           Add-Content -Path $env:GITHUB_OUTPUT -Value "check_output<<EOF"
           Add-Content -Path $env:GITHUB_OUTPUT -Value (Get-Content .\check-e2e-lock.out -Raw)
           Add-Content -Path $env:GITHUB_OUTPUT -Value "EOF"
