@@ -27,22 +27,39 @@ jobs:
         working-directory: frontend
         shell: pwsh
         run: |
-          # PowerShell-friendly lock-check: capture stdout/stderr, do not abort the job
+          # Robust PowerShell-friendly lock-check: capture stdout/stderr, do NOT abort the job
           try {
+            # Run the lock-check script and capture all streams to a file. Use a non-terminating grip
+            # so we can inspect the exit code and still succeed the step.
             node .\scripts\check-e2e-lock-ci.js *> check-e2e-lock.out
             $code = $LASTEXITCODE
           } catch {
-            # In case node process throws, still capture exit code
+            Write-Host "Node lock-check threw an exception: $_"
+            # Ensure we still have the last exit code available
             $code = $LASTEXITCODE
           }
-          if ($code -ne 0) {
-            Add-Content -Path $env:GITHUB_OUTPUT -Value "lock_check_failed=true"
-          } else {
-            Add-Content -Path $env:GITHUB_OUTPUT -Value "lock_check_failed=false"
+
+          # Try to write outputs for the workflow; guard each write so failures here don't fail the step
+          try {
+            if ($code -ne 0) {
+              Add-Content -Path $env:GITHUB_OUTPUT -Value "lock_check_failed=true"
+            } else {
+              Add-Content -Path $env:GITHUB_OUTPUT -Value "lock_check_failed=false"
+            }
+
+            Add-Content -Path $env:GITHUB_OUTPUT -Value "check_output<<EOF"
+            Add-Content -Path $env:GITHUB_OUTPUT -Value (Get-Content .\check-e2e-lock.out -Raw)
+            Add-Content -Path $env:GITHUB_OUTPUT -Value "EOF"
+          } catch {
+            Write-Host "Warning: unable to write full outputs to GITHUB_OUTPUT: $_"
+            # Best-effort fallback: if GITHUB_OUTPUT exists, write a minimal marker
+            if ($env:GITHUB_OUTPUT) {
+              try { Add-Content -Path $env:GITHUB_OUTPUT -Value "lock_check_failed=true" } catch { Write-Host "fallback write failed: $_" }
+            }
           }
-          Add-Content -Path $env:GITHUB_OUTPUT -Value "check_output<<EOF"
-          Add-Content -Path $env:GITHUB_OUTPUT -Value (Get-Content .\check-e2e-lock.out -Raw)
-          Add-Content -Path $env:GITHUB_OUTPUT -Value "EOF"
+
+          # Always exit zero so this check remains non-fatal for the job
+          exit 0
 
       - name: 'Optional: Try Windows esbuild fix'
         if: ${{ env.ENABLE_ESBUILD_FIX == 'true' }}
