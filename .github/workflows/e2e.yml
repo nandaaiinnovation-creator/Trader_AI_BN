@@ -83,33 +83,7 @@ jobs:
           NPM_CONFIG_PRODUCTION: 'false'
         run: npm ci --include=dev
       
-      - name: Debug: show installed packages and Node resolution (non-fatal)
-        working-directory: frontend
-        shell: pwsh
-        run: |
-          Write-Host "== Debug: node & npm info =="
-          node -v
-          npm -v
-          Write-Host "== Debug: check package folders =="
-          try {
-            Write-Host "archiver folder exists:";
-            if (Test-Path "./node_modules/archiver") {
-              Get-ChildItem -Path "./node_modules/archiver" -Name -ErrorAction SilentlyContinue | Select-Object -First 20 | ForEach-Object { Write-Host "  $_" }
-            } else { Write-Host "  (not found)" }
-          } catch { Write-Host "  (error listing archiver):" $_ }
-          try {
-            Write-Host "cypress folder exists:";
-            if (Test-Path "./node_modules/cypress") {
-              Get-ChildItem -Path "./node_modules/cypress" -Name -ErrorAction SilentlyContinue | Select-Object -First 20 | ForEach-Object { Write-Host "  $_" }
-            } else { Write-Host "  (not found)" }
-          } catch { Write-Host "  (error listing cypress):" $_ }
-          Write-Host "== Debug: require.resolve.paths =="
-          try { node -e "console.log('archiver resolve.paths=', JSON.stringify(require.resolve.paths('archiver')) )" } catch { Write-Host 'archiver resolve.paths failed' }
-          try { node -e "console.log('cypress resolve.paths=', JSON.stringify(require.resolve.paths('cypress')) )" } catch { Write-Host 'cypress resolve.paths failed' }
-          Write-Host "== Debug: node process.execPath =="
-          node -e "console.log(process.execPath)"
-          # Always succeed this diagnostic step (non-fatal)
-          exit 0
+      # Debug step removed: caused workflow schema/lint failures. The deeper diagnostics remain in frontend/scripts/preflight-check.js
       
       - name: Run frontend preflight checks
         working-directory: frontend
