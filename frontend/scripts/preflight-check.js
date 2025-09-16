@@ -6,6 +6,18 @@ console.log('Preflight check: cwd=', process.cwd());
 console.log('Node version:', process.version);
 console.log('NODE_ENV=', process.env.NODE_ENV);
 console.log('NPM_CONFIG_PRODUCTION=', process.env.NPM_CONFIG_PRODUCTION);
+console.log('NODE_PATH=', process.env.NODE_PATH);
+try {
+  console.log('process.execPath=', process.execPath);
+} catch (e) {
+  console.warn('process.execPath lookup failed:', e && e.message);
+}
+try {
+  const pathEnv = process.env.PATH || process.env.Path || process.env.path || '';
+  console.log('PATH (truncated):', pathEnv.split(';').slice(0,8).join(';'));
+} catch (e) {
+  console.warn('Unable to read PATH:', e && e.message);
+}
 try {
   const fs = require('fs');
   const nm = 'node_modules';
@@ -18,9 +30,22 @@ try {
 } catch (e) {
   console.warn('Failed to list node_modules:', e && e.message);
 }
+// explicitly check for package folders
+try {
+  const fs = require('fs');
+  console.log('node_modules/archiver exists=', fs.existsSync('node_modules/archiver'));
+  console.log('node_modules/cypress exists=', fs.existsSync('node_modules/cypress'));
+} catch (e) {
+  console.warn('Failed to check package folders:', e && e.message);
+}
 try {
   // prefer require.resolve to show exact resolution path or error
   try {
+    try {
+      console.log('archiver require.resolve.paths():', require.resolve.paths('archiver'));
+    } catch (inner) {
+      console.warn('require.resolve.paths archiver failed:', inner && inner.message);
+    }
     const path = require.resolve('archiver');
     console.log('archiver resolved to:', path);
     console.log('archiver version:', require('archiver/package.json').version);
@@ -34,6 +59,11 @@ try {
 }
 try {
   try {
+    try {
+      console.log('cypress require.resolve.paths():', require.resolve.paths('cypress'));
+    } catch (inner) {
+      console.warn('require.resolve.paths cypress failed:', inner && inner.message);
+    }
     const path = require.resolve('cypress');
     console.log('cypress resolved to:', path);
     try {
