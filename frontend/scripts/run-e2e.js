@@ -261,6 +261,38 @@ async function run(){
   if (server.stdout) server.stdout.pipe(serverOut)
   if (server.stderr) server.stderr.pipe(serverErr)
 
+  // Start a simple poll-based tailer for the server log so CI step output shows
+  // live progress while we wait for the health endpoint. This is intentionally
+  // lightweight (no external deps) and works on Windows runners.
+  function startLogTail(filePath, prefix = '[server-log]'){
+    let offset = 0
+    let stopped = false
+    const pollMs = 1000
+    const pump = () => {
+      if (stopped) return
+      try {
+        if (!fs.existsSync(filePath)) return
+        const stat = fs.statSync(filePath)
+        if (stat.size > offset){
+          const rs = fs.createReadStream(filePath, { start: offset, end: stat.size - 1, encoding: 'utf8' })
+          rs.on('data', (chunk) => {
+            // prefix each chunk so it's clear in CI logs
+            process.stdout.write(`${prefix} ${chunk}`)
+          })
+          rs.on('end', () => { offset = stat.size })
+        }
+      } catch (e) {
+        // best-effort: don't crash orchestrator if tailing fails
+        // write a single-line warning and stop trying if repeated errors occur
+        process.stdout.write(`[run-e2e] log tail error: ${e && e.message}\n`)
+      }
+    }
+    const handle = setInterval(pump, pollMs)
+    // run immediately once
+    pump()
+    return { stop: () => { stopped = true; clearInterval(handle) } }
+  }
+
   // optionally start the frontend dev server (vite)
   let devProc = null
   if (!noDev){
@@ -301,12 +333,17 @@ async function run(){
   // give the server a little more time to initialize on CI hosts
   await new Promise(r => setTimeout(r, 1500))
 
+  // Start tailing the server log so CI shows progress while we wait for health
+  const serverTail = startLogTail(serverLogPath, '[test-server]')
+
   // wait for test server health endpoint
   try {
     console.log('Waiting for test server health at http://localhost:4001/health')
     // increase to 30s on CI to reduce flakiness on slower runners
     await waitForUrl('http://localhost:4001/health', 30000)
     console.log('Test server ready')
+    // stop tailing once healthy
+    try { serverTail.stop() } catch (e) {}
   } catch (err) {
     console.warn('Test server did not become ready:', err.message)
     // collect diagnostics: dump tail of server & dev logs to help triage flaky startups
@@ -344,6 +381,8 @@ async function run(){
     } catch (diagErr) {
       console.warn('Failed to collect diagnostics:', diagErr && diagErr.message)
     }
+    // ensure tailer stopped
+    try { serverTail.stop() } catch (e) {}
   }
 
   // wait for frontend to be ready (if started)
