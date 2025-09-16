@@ -80,6 +80,10 @@ jobs:
       - name: Install dependencies
         working-directory: frontend
         run: npm ci
+      
+      - name: Run frontend preflight checks
+        working-directory: frontend
+        run: npm run preflight
 
       - name: Post PR comment if lock check failed
         if: ${{ github.event_name == 'pull_request' && steps.lock-check.outputs.lock_check_failed == 'true' }}

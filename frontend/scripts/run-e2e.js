@@ -309,6 +309,8 @@ async function run(){
     const devOut = fs.createWriteStream(devLogPath, { flags: 'a' })
     if (devProc.stdout) devProc.stdout.pipe(devOut)
     if (devProc.stderr) devProc.stderr.pipe(devOut)
+  // Start tailing dev server log immediately so CI step shows dev server output early
+  const devTail = startLogTail(devLogPath, '[dev-server]')
   }
 
   // helper to teardown both processes
@@ -344,6 +346,7 @@ async function run(){
     console.log('Test server ready')
     // stop tailing once healthy
     try { serverTail.stop() } catch (e) {}
+  try { if (typeof devTail !== 'undefined') devTail.stop() } catch (e) {}
   } catch (err) {
     console.warn('Test server did not become ready:', err.message)
     // collect diagnostics: dump tail of server & dev logs to help triage flaky startups
