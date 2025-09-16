@@ -77,9 +77,11 @@ jobs:
           # Do not fail the job if the fix script isn't available or fails; it's best-effort
           exit 0
 
-      - name: Install dependencies
+      - name: Install dependencies (include devDependencies)
         working-directory: frontend
-        run: npm ci
+        env:
+          NPM_CONFIG_PRODUCTION: 'false'
+        run: npm ci --include=dev
       
       - name: Run frontend preflight checks
         working-directory: frontend
