@@ -83,7 +83,8 @@ jobs:
       
       - name: Run frontend preflight checks
         working-directory: frontend
-        run: npm run preflight
+        # Call the node script directly to avoid depending on package.json 'scripts' being present
+        run: node ./scripts/preflight-check.js
 
       - name: Post PR comment if lock check failed
         if: ${{ github.event_name == 'pull_request' && steps.lock-check.outputs.lock_check_failed == 'true' }}
