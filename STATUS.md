@@ -12,9 +12,9 @@ Keep a short, up-to-date view of what is truly working end-to-end, by milestone.
 ## Project Status (Release Manager View)
 
 Last Updated: 2025-09-17
-Overall % Complete (production on localhost via Docker): 80%
+Overall % Complete (production on localhost via Docker): 82%
 
-Readiness summary: You can bring up Postgres, Redis, Backend, and Frontend in Docker; health checks pass; with valid Zerodha credentials you can complete OAuth, establish a live WebSocket, process ticks, and, with orchestrator enabled, generate/persist/broadcast signals. Frontend dashboard renders and can display live updates. Remaining work is focused on rules/backtest UX wiring, a demo mode for first-run verification without live creds, and a containerized E2E smoke.
+Readiness summary: You can bring up Postgres, Redis, Backend, and Frontend in Docker; health checks pass; with valid Zerodha credentials you can complete OAuth, establish a live WebSocket, process ticks, and, with orchestrator enabled, generate/persist/broadcast signals. Frontend dashboard renders and can display live updates. Rules page now loads and persists DB-backed configs and acknowledges apply over Socket.IO; a minimal backtest path is wired and visible in the UI. Remaining work is focused on dashboard UX polish, first-run Demo Mode validation in containers, and a containerized E2E smoke.
 
 ---
 
@@ -33,8 +33,8 @@ Readiness summary: You can bring up Postgres, Redis, Backend, and Frontend in Do
 • Verifiable in Docker: Configure `.env` with Zerodha keys; generate login URL from Settings, complete OAuth, observe that the backend reports WS connected and that ticks begin streaming to connected clients.
 
 3) Stage 3 — Rules engine
-• Completed: Rules engine is loadable at startup under a feature flag, dynamically registers rule implementations, evaluates inputs, and surfaces pass/fail with scoring and metadata.
-• In Progress: The Rules page UI renders; full “edit → persist → take effect” loop via DB-backed configuration is partially wired and not yet validated start-to-finish in containers.
+• Completed: Rules engine is loadable at startup under a feature flag, dynamically registers rule implementations, evaluates inputs, and surfaces pass/fail with scoring and metadata. The Rules page UI loads configs, allows editing, persists to DB, and emits a live apply acknowledgment (`rules:applied`).
+• In Progress: Validate the edit→persist→apply loop in Docker with Demo Mode enabled for a no-creds path.
 • Pending: Small UX around explaining rules and showing current config values inline.
 • Verifiable in Docker: Start with rules enabled; with ticks flowing (real or mock), the engine runs and contributes to downstream signals (visible when orchestrator is enabled).
 
@@ -45,14 +45,14 @@ Readiness summary: You can bring up Postgres, Redis, Backend, and Frontend in Do
 • Verifiable in Docker: Enable orchestrator; with ticks, see new signals in DB and on the WebSocket stream; confirm via logs and client subscription.
 
 5) Stage 5 — REST and WebSocket APIs
-• Completed: REST endpoints for health, settings, rules, signals, candles, and backtests exist; Socket.IO emits ticks and signals; CORS is permissive for localhost.
-• In Progress: Backtest endpoints exist; full user-triggered runs with visible results in the UI need validation in containers.
+• Completed: REST endpoints for health, settings, rules, signals, candles, and backtests exist; Socket.IO emits ticks and signals; CORS is permissive for localhost. A minimal user-triggered backtest is wired end-to-end and renders a deterministic summary in the UI.
+• In Progress: Validate the backtest flow in Docker alongside Demo Mode.
 • Pending: OpenAPI docs and a simple API console (optional quality-of-life).
 • Verifiable in Docker: Health endpoints return OK; broker endpoints produce login URL and accept callback; WS clients receive `tick` and `signal` events.
 
 6) Stage 6 — Frontend dashboard and UX
-• Completed: Dashboard, Settings, Rules, Backtesting, and Sentiment pages render. Chart panel shows candlesticks/overlays; timeframe selector works. WebSocket client updates the UI when data streams.
-• In Progress: Rules page persistence and Backtesting UI flow exist but need end-to-end validation (trigger, persist, display). Additional E2E coverage beyond navigation is desirable.
+• Completed: Dashboard, Settings, Rules, Backtesting, and Sentiment pages render. Chart panel shows overlays; timeframe selector works. WebSocket client updates the UI when data streams. Rules UI persistence and Backtesting summary are implemented.
+• In Progress: Dashboard polish: HTF confluence indicator, session timer, signal history UX, and chart markers refinements.
 • Pending: None for initial visualization; more coverage for complex flows.
 • Verifiable in Docker: `http://localhost:3000` shows dashboard; with data streaming, charts/cards update live; Settings can generate the broker login URL.
 
