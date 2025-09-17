@@ -16,6 +16,7 @@ import { createRulesEngineFromDb } from './services/rules';
 import path from 'path';
 import fs from 'fs';
 import { pathToFileURL } from 'url';
+import { demoEmitter } from './demo/emitter';
 
 const app = express();
 app.use(express.json());
@@ -48,6 +49,20 @@ export async function start() {
     });
     // Attach WS handlers here (src/ws/socket.ts)
     setupWebSocket(io);
+
+    // Demo Mode: emit synthetic ticks and signals to Socket.IO and orchestrator
+    if (process.env.DEMO_MODE === 'true') {
+      logger.info('Demo Mode enabled: streaming synthetic ticks and signals');
+      demoEmitter.on('tick', (t: any) => {
+        try { io.emit('tick', t); } catch (e) {}
+      });
+      demoEmitter.on('signal', async (s: any) => {
+        try {
+          io.emit('signal', s);
+        } catch (e) {}
+      });
+      demoEmitter.start();
+    }
 
     // Wire optional SignalOrchestrator behind feature flag
     // Backwards-compatible env check: support either ENABLE_SIGNAL_ORCHESTRATOR or ENABLE_ORCHESTRATOR

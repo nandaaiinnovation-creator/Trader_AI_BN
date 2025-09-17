@@ -110,7 +110,7 @@ cd banknifty-signals
 1. Copy `.env.example` to `.env` and fill in your Zerodha API keys and secrets.
 2. Run:
    ```sh
-   docker compose up -d
+  docker compose -f docker/docker-compose.yml up -d
    ```
 3. Open `http://localhost:3000` in your browser.
 4. Click "Generate Login URL" in the app, log into Zerodha, and see live BANKNIFTY ticks & signals.
@@ -168,6 +168,27 @@ Decision: the JSON Schema validator (`ajv`) is intentionally kept in `backend/de
 If you'd like to centralize dev tooling (move `ajv` to the repo root), open an issue or PR; I'll help migrate CI and scripts accordingly.
 
 ## Milestone publish workflow
+## Live vs Demo Mode (local Docker)
+
+You can run the stack with or without live Zerodha credentials:
+
+- Live: set `ZERODHA_API_KEY`, `ZERODHA_API_SECRET`, and `ZERODHA_REDIRECT_URL` in `.env`, leave `DEMO_MODE=false`, and complete login from Settings → Generate Login URL.
+- Demo: set `DEMO_MODE=true` in `.env`. The backend will emit synthetic ticks and demo signals and serve a small seeded candles dataset from `/api/candles/demo`. This is useful for first-run validation and CI smoke.
+
+In both modes, the following defaults are enabled for local Docker:
+
+- `ENABLE_RULES_ENGINE=true`
+- `ENABLE_SIGNAL_ORCHESTRATOR=true`
+
+To start the stack:
+
+```powershell
+Copy-Item .env.example .env -Force
+# Edit .env as needed (Live or Demo)
+docker compose -f docker/docker-compose.yml up -d
+Start-Process http://localhost:3000
+```
+
 
 We follow a quiet, milestone-driven publish process to avoid noisy incremental pushes and keep history clean.
 
