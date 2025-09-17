@@ -72,7 +72,7 @@ Readiness summary: You can bring up Postgres, Redis, Backend, and Frontend in Do
 
 ## Overall Readiness and Verification Guide
 
-Current readiness: 80%
+Current readiness: 82%
 
 To verify the current stack on Windows PowerShell:
 
@@ -90,8 +90,19 @@ curl http://localhost:8080/api/health
 # Optional: view UI
 Start-Process http://localhost:3000
 
-# Optional: subscribe to WS in browser devtools
-#   await io('http://localhost:8080').on('signal', console.log)
+# Rules UI verification (in Docker)
+# - Navigate to http://localhost:3000/rules
+# - Toggle a rule and click Save; a green toast appears on apply (via `rules:applied` socket event).
+# - Dashboard side panel updates rule states live (via `rule_config_updated`).
+
+# Backtesting verification (in Docker)
+# - Navigate to http://localhost:3000/backtesting
+# - Click "Run Demo Backtest"; a deterministic summary card appears.
+
+# Dashboard elements (in Docker)
+# - Top bar shows: session timer, connection status, HTF confluence badge, and simple ATR/VWAP deviation + breadth metrics derived from recent signals.
+# - SignalCards display 3m/5m/15m with conviction percent where available.
+# - Recent signals list appends live; click "Load older" to lazy-load more history.
 ```
 
 If you lack live Zerodha credentials, you can still validate API surface, health, UI, and WS connectivity by running with WS disabled or with a local WS mock (to be added in “Demo Mode” below).
