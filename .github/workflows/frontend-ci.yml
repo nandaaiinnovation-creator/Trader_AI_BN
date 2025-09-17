@@ -1,0 +1,40 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Run unit tests
+        run: npm test --silent
+
+      # Optional: Cypress smoke test (disabled by default)
+      # To enable, uncomment and configure secrets / project settings.
+      # - name: Start dev server
+      #   run: npm run dev &
+      # - name: Wait for server
+      #   run: npx wait-on http://localhost:5173
+      # - name: Run cypress smoke
+      #   run: npx cypress run --spec "cypress/e2e/nav_and_settings.spec.js"
