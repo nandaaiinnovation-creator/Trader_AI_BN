@@ -1,5 +1,7 @@
 // Setup test environment polyfills and helpers
-/* global */
+// register jest-dom matchers
+try{ require('@testing-library/jest-dom') } catch(e) { /* optional */ }
+
 // minimal ResizeObserver mock
 class ResizeObserverMock {
   constructor(cb){ this.cb = cb }
@@ -15,11 +17,8 @@ global.matchMedia = global.matchMedia || function(){
   return { matches: false, addListener: ()=>{}, removeListener: ()=>{} }
 }
 
-// fetch polyfill: default to returning empty data
+// fetch polyfill: default to returning empty data for tests
 global.fetch = global.fetch || (async ()=> ({ ok: true, json: async ()=>[] }))
 
 // setImmediate polyfill for environments that lack it
 global.setImmediate = global.setImmediate || function(fn, ...args){ return setTimeout(fn, 0, ...args) }
-
-// jest-dom matchers
-try{ require('@testing-library/jest-dom/extend-expect') } catch(e) { /* optional */ }

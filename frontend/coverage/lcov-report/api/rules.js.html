@@ -25,14 +25,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/10</span>
+                <span class='fraction'>0/9</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/0</span>
+                <span class='fraction'>0/4</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/10</span>
+                <span class='fraction'>0/8</span>
             </div>
         
             
@@ -81,20 +81,12 @@
 <a name='L16'></a><a href='#L16'>16</a>
 <a name='L17'></a><a href='#L17'>17</a>
 <a name='L18'></a><a href='#L18'>18</a>
-<a name='L19'></a><a href='#L19'>19</a>
-<a name='L20'></a><a href='#L20'>20</a>
-<a name='L21'></a><a href='#L21'>21</a>
-<a name='L22'></a><a href='#L22'>22</a>
-<a name='L23'></a><a href='#L23'>23</a>
-<a name='L24'></a><a href='#L24'>24</a>
-<a name='L25'></a><a href='#L25'>25</a>
-<a name='L26'></a><a href='#L26'>26</a>
-<a name='L27'></a><a href='#L27'>27</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L19'></a><a href='#L19'>19</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -103,44 +95,28 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">export async function <span class="fstat-no" title="function not covered" >getRuleConfigs(</span>){
-  // Simple wrapper around fetch — returns { data: [...] }
-<span class="cstat-no" title="statement not covered" >  try{</span>
-    const res = <span class="cstat-no" title="statement not covered" >await fetch('/api/rules')</span>
-    const json = <span class="cstat-no" title="statement not covered" >await res.json()</span>
-<span class="cstat-no" title="statement not covered" >    return { data: json }</span>
-  } catch (err){
-<span class="cstat-no" title="statement not covered" >    return { data: [] }</span>
-  }
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">export async function <span class="fstat-no" title="function not covered" >getRuleConfigs(</span>) {
+  const res = <span class="cstat-no" title="statement not covered" >await fetch('/api/rules/config');</span>
+<span class="cstat-no" title="statement not covered" >  if (!res.ok) <span class="cstat-no" title="statement not covered" >throw new Error('Failed to fetch rule configs');</span></span>
+<span class="cstat-no" title="statement not covered" >  return res.json();</span>
 }
 &nbsp;
-export async function <span class="fstat-no" title="function not covered" >upsertRuleConfig(</span>name, payload){
-<span class="cstat-no" title="statement not covered" >  try{</span>
-    const res = <span class="cstat-no" title="statement not covered" >await fetch(`/api/rules/${encodeURIComponent(name)}`, {</span>
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-    const json = <span class="cstat-no" title="statement not covered" >await res.json()</span>
-<span class="cstat-no" title="statement not covered" >    return { data: json }</span>
-  } catch (err){
-<span class="cstat-no" title="statement not covered" >    throw err</span>
+export async function <span class="fstat-no" title="function not covered" >upsertRuleConfig(</span>name, body) {
+  const res = <span class="cstat-no" title="statement not covered" >await fetch(`/api/rules/config/${encodeURIComponent(name)}`, {</span>
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+<span class="cstat-no" title="statement not covered" >  if (!res.ok) {</span>
+    const text = <span class="cstat-no" title="statement not covered" >await res.text();</span>
+<span class="cstat-no" title="statement not covered" >    throw new Error(`Upsert failed: ${res.status} ${text}`);</span>
   }
+<span class="cstat-no" title="statement not covered" >  return res.json();</span>
 }
-&nbsp;
-export default { getRuleConfigs, upsertRuleConfig }
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -148,7 +124,7 @@ export default { getRuleConfigs, upsertRuleConfig }
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-09-16T09:29:17.782Z
+                at 2025-09-17T09:21:44.461Z
             </div>
         <script src="../prettify.js"></script>
         <script>

@@ -1,8 +1,10 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+﻿import { defineConfig } from 'vite'
 
+// Minimal Vite config for local dev/E2E: do NOT import
+// `@vitejs/plugin-react` to avoid ESM-only loading errors in some
+// Node/esbuild environments. esbuild's JSX transform is sufficient here.
 export default defineConfig({
-  plugins: [react()],
+  plugins: [],
   server: {
     port: 5173,
     proxy: {
