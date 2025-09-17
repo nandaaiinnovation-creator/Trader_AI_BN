@@ -140,7 +140,7 @@ function simulateBacktest(candles: Candle[], timeframe: string, toggles: { globa
 		overall,
 		groups: groupsOut,
 		equity_curve,
-		trades: trades.map(({ group, ...rest }) => rest),
+		trades: trades.map(({ group: _group, ...rest }) => rest),
 		meta: { timeframe, count: trades.length }
 	};
 }
