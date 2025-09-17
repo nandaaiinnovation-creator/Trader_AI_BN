@@ -1,4 +1,3 @@
-
 ---
 project_name: banknifty-signals
 ---
@@ -6,153 +5,191 @@ project_name: banknifty-signals
 # STATUS.md
 
 ## Purpose
-Keep a short, up-to-date summary of project progress and the current milestone. Update the **Last Updated** and **% Complete** fields when making progress. This file is used by the milestone publish script and as the single source of truth for milestone readiness.
+Keep a short, up-to-date view of what is truly working end-to-end, by milestone. Update the Last Updated and % Complete fields when functionality crosses a verification threshold (tests or Docker validation).
 
 ---
 
-## Project Status
+## Project Status (Release Manager View)
 
-**Summary**: Ongoing development. Core backend and rules engine are implemented. Current work focuses on making the Zerodha adapter CI-safe (test hooks, deterministic integration tests), repo hygiene after a force-push, and CI/publish safeguards.
+Last Updated: 2025-09-17
+Overall % Complete (production on localhost via Docker): 82%
 
-**Last Updated**: 2025-09-14
-**% Complete**: 67%
-
----
-
-### Phase Tracking (high level)
-
-| Phase | Description | Status |
-|-------|-------------|--------|
-| Base Infrastructure | Docker, DB, Redis, migrations | ✅ Done |
-| Zerodha Integration | OAuth, WS adapter, tokens, test harness | ✅ Done |
-| Signal Generation | Composite signals, DB, WS broadcast | ✅ Done |
-| Rules Engine | Implement 47 rules, config persistence | ✅ Done |
-| Signal Generation | Composite signals, DB, WS broadcast | 🟧 In Progress |
-| Frontend Dashboard | Charts, rules panel, signal feed | ⬜ Pending |
-| Backtesting | Modes, metrics, visualization | ⬜ Pending |
-| Sentiment Module | API connectors, filters | ⬜ Pending |
-| Observability & Tests | Prometheus, logging, CI/CD | � In Progress |
+Readiness summary: You can bring up Postgres, Redis, Backend, and Frontend in Docker; health checks pass; with valid Zerodha credentials you can complete OAuth, establish a live WebSocket, process ticks, and, with orchestrator enabled, generate/persist/broadcast signals. Frontend dashboard renders and can display live updates. Rules page now loads and persists DB-backed configs and acknowledges apply over Socket.IO; a minimal backtest path is wired and visible in the UI. Remaining work is focused on dashboard UX polish, first-run Demo Mode validation in containers, and a containerized E2E smoke.
 
 ---
 
-### Current Zerodha Milestone (what must be present before publishing)
+## Milestone-by-Milestone E2E Status (1–8)
 
-- Zerodha adapter hardening (test hooks, reconnect/backoff, token lifecycle): Done in feature branch `feature/zerodha-hardening` (local).
-- Unit tests: Added and passing locally.
-- Integration tests (safe, in-process mock `ws`): Added and passing locally; integration tests excluded from PR CI by default and run via manual workflow.
-- CI workflows: PR-only unit-test workflow and manual integration runner created.
-- Documentation: `backend/docs/zerodha-refresh-handler.md`, `backend/docs/integration-tests.md`, and `backend/examples/refresh-handler.example.ts` added.
+1) Stage 1 — Repo foundation and local dev
+• Completed: A user can run a local workstation stack in Docker: Postgres, Redis, Backend, and Frontend containers start cleanly. Backend exposes fast `/health` and `/api/health`. Socket.IO is attached. Frontend serves the built app. Health checks and dependency ordering are in place in the Docker stack under `docker/`.
+• In Progress: Documentation emphasizes the `docker/` stack; ensure `.env` alignment for the backend DB URL is consistently documented. The simplified root compose is secondary.
+• Pending: None.
+• Verifiable in Docker: Start the stack; visit `http://localhost:8080/api/health` (OK) and `http://localhost:3000` (UI loads).
 
-### Recent PR update (Signal Orchestrator)
+2) Stage 2 — Market data ingestion (Zerodha)
+• Completed: OAuth login URL flow, callback handler, secure token persistence (encrypted), and WebSocket ingestion with reconnects/rate-limits. After successful callback and when WS is enabled, ticks stream into the app and are emitted to clients.
+• In Progress: Production-like verification requires real API keys configured in `.env` (including a correct redirect URL). Without them, a WS mock can be used to validate the ingestion path.
+• Pending: None.
+• Verifiable in Docker: Configure `.env` with Zerodha keys; generate login URL from Settings, complete OAuth, observe that the backend reports WS connected and that ticks begin streaming to connected clients.
 
-- PR #17 (feature/signal-orchestrator) implements an opt-in `SignalOrchestrator` service, a non-blocking `RulesEngine` hook, and scoped lint fixes. PR-level CI (typecheck + PR workflows) passed and local checks (lint/typecheck/tests) passed. PR remains Draft per project policy.
-- The orchestrator is wired into `src/index.ts` behind feature flag `ENABLE_SIGNAL_ORCHESTRATOR=true` and exposed via `src/services/orchestratorSingleton.ts` for optional injection.
-- An integration test `tests/integration/orchestrator.integration.test.ts` was added to validate persist+emit behavior with a mocked `io` and `typeorm` repository.
+3) Stage 3 — Rules engine
+• Completed: Rules engine is loadable at startup under a feature flag, dynamically registers rule implementations, evaluates inputs, and surfaces pass/fail with scoring and metadata. The Rules page UI loads configs, allows editing, persists to DB, and emits a live apply acknowledgment (`rules:applied`).
+• In Progress: Validate the edit→persist→apply loop in Docker with Demo Mode enabled for a no-creds path.
+• Pending: Small UX around explaining rules and showing current config values inline.
+• Verifiable in Docker: Start with rules enabled; with ticks flowing (real or mock), the engine runs and contributes to downstream signals (visible when orchestrator is enabled).
 
-- Wiring orchestrator milestone: In Progress (2025-09-13)
+4) Stage 4 — Signal orchestration and persistence
+• Completed: Signals are produced, persisted to Postgres, and broadcast to Socket.IO clients when orchestrator is enabled. Integration tests verify ingest → evaluate → persist → emit.
+• In Progress: Prefer the modern orchestrator entrypoint; ensure the feature flag is set in Docker for deterministic behavior.
+• Pending: A lightweight status endpoint summarizing orchestrator state would aid ops (optional).
+• Verifiable in Docker: Enable orchestrator; with ticks, see new signals in DB and on the WebSocket stream; confirm via logs and client subscription.
 
-### Reviewer Checklist (mirror of PR template)
+5) Stage 5 — REST and WebSocket APIs
+• Completed: REST endpoints for health, settings, rules, signals, candles, and backtests exist; Socket.IO emits ticks and signals; CORS is permissive for localhost. A minimal user-triggered backtest is wired end-to-end and renders a deterministic summary in the UI.
+• In Progress: Validate the backtest flow in Docker alongside Demo Mode.
+• Pending: OpenAPI docs and a simple API console (optional quality-of-life).
+• Verifiable in Docker: Health endpoints return OK; broker endpoints produce login URL and accept callback; WS clients receive `tick` and `signal` events.
 
-- Code Quality & Design: cohesive, SRP, optional integration, descriptive naming, adequate tests.
-- Safety & Non-Regression: feature runs disabled by default, handles missing infra, side effects mocked.
-- Repo Hygiene: correct directories, imports clean, lint/typecheck/tests pass, no debug artifacts.
-- Documentation & Tracking: `STATUS.md` updated, PR describes scope and next steps.
+6) Stage 6 — Frontend dashboard and UX
+• Completed: Dashboard, Settings, Rules, Backtesting, and Sentiment pages render. Chart panel shows overlays; timeframe selector works. WebSocket client updates the UI when data streams. Rules UI persistence and Backtesting summary are implemented.
+• In Progress: Dashboard polish: HTF confluence indicator, session timer, signal history UX, and chart markers refinements.
+• Pending: None for initial visualization; more coverage for complex flows.
+• Verifiable in Docker: `http://localhost:3000` shows dashboard; with data streaming, charts/cards update live; Settings can generate the broker login URL.
 
----
+7) Stage 7 — Testing strategy (unit, integration, E2E)
+• Completed: Backend unit/integration tests are comprehensive (including WS jitter/reconnect, persistence, and emissions). Frontend unit/snapshot/a11y tests are green. CI runs backend and frontend suites.
+• In Progress: Cypress is used locally; CI doesn’t yet run a containerized Cypress smoke against the compose stack.
+• Pending: Containerized E2E gates (spin stack, run 1–2 specs, collect artifacts).
+• Verifiable in Docker: Not required; validation is via CI job once added.
 
-### Acceptance Criteria (project-wide)
-
-- Acceptance criteria: `lint` and `typecheck` must pass in CI. Typecheck is a strict gate (`tsc --noEmit`), while lint is allowed to report warnings for legacy issues until the backlog item to tighten linting is completed.
-
-### Tech Debt / Backlog
-
-- Re-enable `--max-warnings=0` in ESLint and fix all legacy lint violations. This is a medium-term effort that should be tracked as a separate milestone.
-- Evaluate bumping `engines.node` from `18` → `22` once CI and local environments are aligned. Update CI and `engines` only after verification across the team.
-
-For a consolidated list of deferred TODOs and follow-ups found during the sweep, see `docs/TODOs.md`.
-
-### Node / CI runtime note
-
-- Project runs on Node `18.x` in CI (GitHub Actions workflows are pinned to Node 18). Local Node `22.x` may work but is not guaranteed; developers should prefer Node 18 for parity with CI.
-
-Blocking items before publishing this milestone (per repo policy):
-
-1. Project-level documentation files must reflect new CI/publish flow and how to trigger integrations: `PROJECT_PLAN.md` (reference), `STATUS.md` (this file, updated), and a PR draft file `PR_DRAFT_ZERODHA_LIVE_INTEGRATION.md` must exist (created alongside this update).
-2. Ensure lockfile(s) are updated and committed if dependencies changed (`backend/package-lock.json`).
-3. Sweep for any remaining `TODO`/`WIP` placeholders and resolve or annotate them.
-
-The branch `feature/zerodha-hardening` MUST remain local and must NOT be pushed until the owner marks the milestone Done.
-
----
-
-### Base Infrastructure (current focus)
-
-We are advancing the Base Infrastructure milestone. The following items have been added and are in-progress in branch `chore/base-infra-migrations`:
-
-- `docker-compose.yml` for Postgres 14, Redis 6, and the backend
-- `/health` endpoint at `GET /health` in `backend/src/index.ts`
-- Initial SQL migration at `backend/src/db/migrations/001_init.sql`
-- Migration runner at `backend/scripts/run_migrations.js`
-- Seeder JSON `backend/src/db/seeders/default_rules.json` and runner `backend/scripts/run_seeders.js`
-
-Milestone policy (short):
-- Local edits: create code, migrations, seeders, docs, and run lightweight checks only (`npm run validate:defaults` and `npm test`). Do NOT run `docker compose up` locally.
-- CI: infra validation will run `docker compose up`, apply migrations, run seeders, and run tests. See `.github/workflows/infra-validation.yml`.
-- A milestone is Done only after CI validates infra (migrations + seed + healthcheck + tests), docs are updated, and `STATUS.md` is marked Done.
+8) Stage 8 — CI/CD and operations
+• Completed: Multiple CI workflows; frontend CI added (build + Jest). Infra validation jobs spin up DB/Redis, apply migrations/seeds, and run tests. Dockerfiles build production artifacts. Optional Prometheus/Grafana services are available in the Docker stack.
+• In Progress: Runbook and “first-run” demo guidance can be clearer.
+• Pending: Automated image publishing on release tags (optional) and a containerized E2E smoke job.
+• Verifiable in Docker: Start Prometheus/Grafana alongside the app and access metrics/dashboard locally.
 
 ---
 
-### Tasks (short checklist)
+## Overall Readiness and Verification Guide
 
-- [x] Zerodha adapter: test hooks and reconnect hardening (local branch)
-- [x] Unit tests added and passing (local)
-- [x] Integration tests (mock `ws`) added and passing (local)
-- [x] CI: PR unit-tests + manual integration workflow added
-- [x] Docs: backend docs and examples added
-- [x] Create `PR_DRAFT_ZERODHA_LIVE_INTEGRATION.md` in repo root
-- [x] Confirm and commit `backend/package-lock.json` if dependencies changed
- - [ ] Final TODO/placeholder sweep (IN-PROGRESS: scanned docs and source; resolving small items now)
+Current readiness: 82%
 
----
+To verify the current stack on Windows PowerShell:
 
-### Notes
+```powershell
+# from repo root
+Copy-Item .env.example .env -Force
+# Edit .env to add ENCRYPTION_KEY (32-byte hex) and Zerodha creds if available
 
- - Rules Engine milestone: Done. The Rules Engine scaffold, migration, seeders and CI infra-validation were added on branch `feature/rules-engine-scaffold` and verified in CI (infra-validation run id `17710518656` — all tests passed). PR #22 (Rules Engine) and PR #25 (tests) contain the changes. 
+# Start stack (production-like)
+docker compose -f docker/docker-compose.yml up -d
 
- - Follow-ups (open): Issue #23 — "Increase coverage for src/services/rulesEngine.ts" remains open as a tracked improvement that does NOT block milestone progression. Issue URL: https://github.com/nandaaiinnovation-creator/Trader_AI_BN/issues/23
+# Health checks
+curl http://localhost:8080/api/health
 
- - New milestone selection: Frontend Dashboard (minimal API wiring + UI placeholders). Rationale: both Rules Engine and Signal Generation are Done; a minimal Frontend Dashboard unblocks reviewers and product testing (it depends on backend APIs that are already present) and enables UX validation and demoing of signals.
+# Optional: view UI
+Start-Process http://localhost:3000
 
-### Proposed next milestone: Frontend Dashboard (minimal)
+# Rules UI verification (in Docker)
+# - Navigate to http://localhost:3000/rules
+# - Toggle a rule and click Save; a green toast appears on apply (via `rules:applied` socket event).
+# - Dashboard side panel updates rule states live (via `rule_config_updated`).
 
-Definition of Done (DoD):
-- Create a `feature/frontend-dashboard-minimal` branch with a lightweight Vite+React scaffold in `frontend/`.
-- Minimal dashboard page that connects to backend Socket.IO and displays recent signals.
-- `README.md` with local run instructions and a dev proxy to backend.
-- Open a Pull Request for the scaffold and link the milestone DoD in the PR description.
-- Keep Issue #23 (rulesEngine coverage) and Issue #24 (TODO sweep) open as parallel work; do not block this milestone on them.
+# Backtesting verification (in Docker)
+# - Navigate to http://localhost:3000/backtesting
+# - Click "Run Demo Backtest"; a deterministic summary card appears.
 
-Priority & scope notes: This is intentionally scoped small — a single-page dashboard that consumes the existing backend API and Socket.IO feed, with a focus on demoability rather than a finished UI. Completing this milestone unblocks Backtesting (by providing a UI to view signals) and Frontend-driven QA.
+# Dashboard elements (in Docker)
+# - Top bar shows: session timer, connection status, HTF confluence badge, and simple ATR/VWAP deviation + breadth metrics derived from recent signals.
+# - SignalCards display 3m/5m/15m with conviction percent where available.
+# - Recent signals list appends live; click "Load older" to lazy-load more history.
+```
 
----
-
-Published milestone PR:
-
-- Draft PR created: https://github.com/nandaaiinnovation-creator/Trader_AI_BN/pull/15 (Zerodha Live Integration)
-- Draft PR created: https://github.com/nandaaiinnovation-creator/Trader_AI_BN/pull/15 (Zerodha Live Integration)
-- Base Infrastructure PR: https://github.com/nandaaiinnovation-creator/Trader_AI_BN/pull/16 (chore/base-infra-migrations)
-
+If you lack live Zerodha credentials, you can still validate API surface, health, UI, and WS connectivity by running with WS disabled or with a local WS mock (to be added in “Demo Mode” below).
 
 ---
 
-### Change Log (recent)
-- **2025-09-12**: Added deterministic test hooks and hardening to `backend/src/services/zerodha.ts`.
-- **2025-09-12**: Added unit and integration tests (mock `ws`); updated `backend/package.json` with integration test scripts.
-- **2025-09-12**: Added GitHub Actions workflows: PR-only unit-test CI and manual integration runner.
+## Plan to Reach 100% (Production on Localhost)
+
+Priority is given to tasks that (1) build directly on what’s already done and (2) unblock future work.
+
+1) Environment and Compose Alignment (low effort, high leverage)
+- Normalize database configuration so backend accepts either a single URL or discrete `POSTGRES_*` variables without manual translation.
+- In Docker stack, enable feature flags by default for a demo experience: rules engine and orchestrator on; allow WS toggle.
+- Clarify `.env` fields and defaults in README; ensure `ENCRYPTION_KEY` requirement is explicit.
+Acceptance: `docker compose up` works out of the box with sample defaults; backend connects to DB/Redis; feature flags behave predictably.
+
+2) Demo Mode for First-Run Validation (unblocks users without live creds)
+- Add a small WS mock emitter that can be toggled via `.env` (e.g., DEMO_MODE=true). It produces synthetic ticks and predictable demo signals.
+- Seed a small historical dataset so charts populate immediately.
+Acceptance: With DEMO_MODE=true and no Zerodha creds, dashboard shows streaming ticks and demo signals within 5 seconds of startup.
+
+3) Rules UI Persistence Loop (connect existing UI to persisted configs)
+- Wire the Rules page to load/save rule configurations; apply without restart if supported, or document the apply cycle.
+- Display current config values and provide a minimal “apply/rollback” control.
+Acceptance: User edits a rule param, saves, and observes expected impact (e.g., rule score) reflected in subsequent signals or a status readback.
+
+4) Backtesting Minimal E2E (one happy path)
+- Expose a simple “Run Backtest” on a fixed symbol/timeframe; return a summarized result set and show it in the UI.
+- Provide a canned dataset in demo mode for determinism.
+Acceptance: From the UI, a user triggers a backtest and sees results (equity curve or summary metrics) without manual steps.
+
+5) Containerized Cypress Smoke (fast safety net)
+- Add a CI job that builds the Docker stack, waits for health, runs 1–2 Cypress specs (navigate to dashboard, confirm an event over WS/mock), and uploads artifacts.
+Acceptance: PRs get a green/red signal from the smoke job in under ~6–8 minutes.
+
+6) Ops Runbook and Troubleshooting
+- Add a concise runbook: ports, logs, how to reset volumes, verifying WS, and common fixes (e.g., “pg_isready failing”).
+Acceptance: New users can self-serve to green in <15 minutes with either live creds or demo mode.
 
 ---
 
-### Notes for reviewers
+## Agent Update Protocol (How to Keep % Accurate)
 
-- This file is intentionally concise. For implementation details see `backend/src/services/zerodha.ts`, `backend/tests/*`, and `backend/docs/*`.
-- Per project policy, do not push or create PRs for `feature/zerodha-hardening` until the milestone is explicitly marked Done by the project owner.
+When to update the Overall % Complete:
+- +5–10%: A milestone’s “Verifiable in Docker” steps are reproducible on a fresh machine with documented commands.
+- +5%: A new CI gate (e.g., containerized Cypress smoke) passes on `main` consistently over 3 consecutive merges.
+- +2–3%: A UX flow becomes fully persistent and user-visible (e.g., Rules edit-save-apply loop verified in Docker).
+
+How to update:
+- Edit this file’s “Last Updated” and “Overall % Complete,” and mark the relevant stage bullets with stronger language (from In Progress → Completed) only after you’ve either:
+	- run the Docker verification commands locally, or
+	- seen the new CI job pass on `main`.
+- Keep notes brief and functional (what the user can do now), avoid file listings.
+
+Evidence to collect (optional but encouraged):
+- Screenshots of the dashboard with live or demo ticks.
+- Short log excerpts showing signals persisted and emitted.
+- CI run URLs for the first green of any new gate.
+
+---
+
+## Next Steps (Low Blockers, High Impact)
+
+1) Compose/Env normalization
+- Make the backend accept discrete DB vars or compute `POSTGRES_URL` automatically; set defaults in `.env.example`.
+
+2) Enable feature flags by default in Docker stack
+- Turn on rules engine and orchestrator in the compose environment, with a clear toggle to disable.
+
+3) Add Demo Mode (WS mock + seed data)
+- Provide a small in-process tick emitter and minimal seed so first-run users see live charts/signals without real credentials.
+
+4) Rules UI persistence pathway
+- Connect existing Rules page to the save/load endpoints and confirm changes impact the engine at runtime (or after a quick apply cycle).
+
+5) Containerized Cypress smoke in CI
+- Stand up a short job that brings the stack up, runs 1–2 specs, and tears down; gate PRs.
+
+These steps build directly on what’s already working and unblock future work (backtesting UX, richer CI, and smoother onboarding) with minimal risk.
+
+---
+
+## Change Log (recent highlights)
+• 2025-09-17: Frontend CI (build + Jest) added on push/PR. Dashboard and Settings verified via unit/E2E locally. Docker stack validated for health and UI load.
+• 2025-09-15: Orchestrator feature-flag wiring stabilized; rules engine optional load verified.
+• 2025-09-14: Zerodha OAuth flow, token persistence, and WS ingestion verified with mock and live configuration paths.
+
+---
+
+Notes for reviewers: This file focuses on functional outcomes and Docker verifiability. For deeper implementation details, consult repository docs and tests. Avoid renaming this file; it is the single source of truth for milestone readiness.

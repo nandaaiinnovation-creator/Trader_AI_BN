@@ -76,6 +76,25 @@ export default function ChartPanel({ signals = [], timeframe = '5m' }){
 
     const points = chosen.map(s=>({ time: Math.floor(new Date(s.timestamp).getTime()/1000), value: Number(s.score || s.conviction || 0) }))
     r.line.setData(points)
+
+    // Add simple BUY/SELL markers for the chosen timeframe
+    const sideOf = (s)=> String(s.signal || s.side || '').toUpperCase()
+    const markers = chosen.map(s=>{
+      const side = sideOf(s)
+      const isBuy = side.includes('BUY') || side === 'LONG'
+      const isSell = side.includes('SELL') || side === 'SHORT'
+      const t = Math.floor(new Date(s.timestamp).getTime()/1000)
+      return {
+        time: t,
+        position: isBuy ? 'belowBar' : 'aboveBar',
+        color: isBuy ? '#16a34a' : '#dc2626',
+        shape: isBuy ? 'arrowUp' : 'arrowDown',
+        text: side || 'SIG',
+      }
+    }).filter(Boolean)
+    if (typeof r.line.setMarkers === 'function') {
+      r.line.setMarkers(markers)
+    }
   },[signals, timeframe])
 
   // attach simple DOM handlers to simulate tooltip/legend behavior for tests
