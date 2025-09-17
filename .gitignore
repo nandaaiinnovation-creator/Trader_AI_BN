@@ -9,3 +9,11 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Frontend generated artifacts
+frontend/coverage/
+frontend/dist/
+
+# Temporary logs created during local runs
+tmp-logs/
+recent-*.txt
