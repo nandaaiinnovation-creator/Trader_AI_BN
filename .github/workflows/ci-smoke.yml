@@ -63,7 +63,7 @@ jobs:
         working-directory: banknifty-signals/frontend
         env:
           CYPRESS_baseUrl: http://localhost:3000
-        run: npx cypress run --spec "cypress/e2e/dashboard.spec.js,cypress/e2e/nav_and_settings.spec.js"
+        run: npx cypress run --spec "cypress/e2e/dashboard.spec.js,cypress/e2e/nav_and_settings.spec.js,cypress/e2e/backtest_smoke.spec.js,cypress/e2e/ws_smoke.spec.js"
 
       - name: Collect container logs
         if: always()
