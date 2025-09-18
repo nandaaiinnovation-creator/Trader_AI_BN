@@ -18,16 +18,14 @@ function hash(s: string) { let h = 0; for (let i=0;i<s.length;i++){ h = (h<<5)-h
 
 export class SentimentService {
   private provider: SentimentProvider;
-  private enabled: boolean;
   private inMemoryCache = new Map<string, { v: number; exp: number }>();
   private rateBucket = new Map<string, { ts: number; count: number }>();
 
   constructor(provider?: SentimentProvider) {
     this.provider = provider || new StubSentimentProvider();
-    this.enabled = process.env.SENTIMENT_ENABLED === 'true';
   }
 
-  isEnabled() { return this.enabled; }
+  isEnabled() { return process.env.SENTIMENT_ENABLED === 'true'; }
 
   private cacheKey(symbol: string, timeframe: string) { return `sent:${symbol}:${timeframe}`; }
 
@@ -64,7 +62,7 @@ export class SentimentService {
   }
 
   async getScore(symbol: string, timeframe: string): Promise<number> {
-    if (!this.enabled) throw new Error('sentiment_disabled');
+    if (!this.isEnabled()) throw new Error('sentiment_disabled');
     const key = this.cacheKey(symbol, timeframe);
     const cached = await this.cacheGet(key);
     if (cached !== undefined) return cached;
