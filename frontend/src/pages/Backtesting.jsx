@@ -7,6 +7,9 @@ export default function Backtesting(){
   const [v2Enabled, setV2Enabled] = React.useState(()=>{
     try { return (import.meta.env?.VITE_BACKTEST_V2_ENABLED === 'true') || (window?.BACKTEST_V2_ENABLED === true) } catch { return false }
   })
+  const [sentimentEnabled, setSentimentEnabled] = React.useState(()=>{
+    try { return (import.meta.env?.VITE_SENTIMENT_ENABLED === 'true') || (window?.SENTIMENT_ENABLED === true) } catch { return false }
+  })
   const [timeframe, setTimeframe] = React.useState('5m')
   const [toggles, setToggles] = React.useState({
     global: true,
@@ -18,6 +21,26 @@ export default function Backtesting(){
       'Sentiment': true,
     }
   })
+  const [sentimentInfluence, setSentimentInfluence] = React.useState(false)
+  const [sentimentScore, setSentimentScore] = React.useState(null)
+
+  React.useEffect(()=>{
+    let abort = false
+    async function loadScore(){
+      if(!sentimentEnabled) { setSentimentScore(null); return }
+      try {
+        const res = await fetch(`/api/sentiment/score?symbol=BANKNIFTY&timeframe=${encodeURIComponent(timeframe)}`)
+        if(!res.ok) throw new Error('HTTP '+res.status)
+        const j = await res.json()
+        if(!abort) setSentimentScore(j?.data?.score ?? null)
+      } catch {
+        if(!abort) setSentimentScore(null)
+      }
+    }
+    loadScore()
+    const t = setInterval(loadScore, 30000)
+    return ()=>{ abort = true; clearInterval(t) }
+  }, [timeframe, sentimentEnabled])
 
   const runDemo = async () => {
     setLoading(true); setError(null)
@@ -36,7 +59,8 @@ export default function Backtesting(){
   const runV2 = async () => {
     setLoading(true); setError(null)
     try {
-      const res = await fetch('/api/backtest/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ timeframe, toggles }) })
+      const payload = { timeframe, toggles, sentimentInfluence: sentimentEnabled && sentimentInfluence }
+      const res = await fetch('/api/backtest/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       if(!res.ok) throw new Error(`HTTP ${res.status}`)
       const json = await res.json()
       setSummary(json.data || null)
@@ -76,6 +100,15 @@ export default function Backtesting(){
                 </label>
               ))}
             </div>
+            {sentimentEnabled && (
+              <div style={{marginTop:8, paddingTop:8, borderTop:'1px dashed #ddd'}}>
+                <label style={{display:'flex', alignItems:'center', gap:6}}>
+                  <input type="checkbox" checked={!!sentimentInfluence} onChange={e=>setSentimentInfluence(e.target.checked)} />
+                  <span>Use Sentiment influence</span>
+                </label>
+                <div style={{fontSize:12, opacity:0.8}}>Score: {sentimentScore===null ? '—' : sentimentScore.toFixed(2)} {summary?.sentiment_meta && ` (α=${summary.sentiment_meta.alpha}, factor=${summary.sentiment_meta.factor.toFixed(2)})`}</div>
+              </div>
+            )}
             <div style={{marginTop:10}}>
               <button onClick={runV2} disabled={loading}>{loading ? 'Running…' : 'Run Backtest'}</button>
             </div>
