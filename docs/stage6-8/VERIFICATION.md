@@ -1,3 +1,21 @@
+# Stage 6–8 Verification
+
+## Backtest v2 sentiment clarity
+- Set `BACKTEST_V2_ENABLED=true` and `SENTIMENT_ENABLED=true` in `.env`.
+- In Backtesting page, enable "Use Sentiment influence" and run.
+- Expect to see baseline vs adjusted metrics with α, factor, and score shown.
+
+## Metrics and Grafana
+- Backend exposes Prometheus at `/metrics`.
+- Compose brings up Prometheus (`localhost:9090`) and Grafana (`localhost:3001`).
+- Dashboard shows:
+  - `backtest_duration_seconds` p90
+  - `backtest_runs_total` split by timeframe/sentiment
+  - `sentiment_score` gauge/graph
+
+## Troubleshooting
+- If frontend in Docker fails to build, ensure host `node_modules` are ignored (.dockerignore) and deps installed in container.
+- If `/metrics` 404s, rebuild backend image; ensure server started.
 # Stage 6–8 Verification (Docker, Windows PowerShell)
 
 ```powershell

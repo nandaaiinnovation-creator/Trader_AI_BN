@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { sentimentService } from '../services/sentiment';
 import fs from 'fs';
 import path from 'path';
+import { backtestRuns, backtestDuration } from '../utils/metrics';
 const router = Router();
 
 // POST /api/backtest/demo
@@ -156,10 +157,14 @@ router.post('/run', async (req: Request, res: Response) => {
 	const timeframe = typeof req.body?.timeframe === 'string' ? req.body.timeframe : '5m';
 	const toggles = typeof req.body?.toggles === 'object' && req.body?.toggles ? req.body.toggles : {};
 	const sentimentInfluence = !!req.body?.sentimentInfluence;
+		const sentimentFlag = sentimentInfluence && process.env.SENTIMENT_ENABLED === 'true' ? 'on' : 'off';
+		const endTimer = backtestDuration.startTimer({ timeframe, sentiment: sentimentFlag });
 		let candles: Candle[] = [];
 		// For now use seeded candles for determinism in both Demo and Live; can be replaced with DB fetch in Live later
 		candles = loadSeedCandles();
 		let result = simulateBacktest(candles, timeframe, toggles);
+		// capture baseline before applying sentiment
+		const baselineOverall = result.overall;
 		if (sentimentInfluence && process.env.SENTIMENT_ENABLED === 'true') {
 			try {
 				const score = await sentimentService.getScore('BANKNIFTY', timeframe);
@@ -172,10 +177,12 @@ router.post('/run', async (req: Request, res: Response) => {
 				})();
 				const overall = computeMetrics(influencedTrades.map((t: any) => t.pnl));
 				// groups unaffected for simplicity in this pass
-				result = { ...result, trades: influencedTrades, equity_curve, overall, sentiment_meta: { score, alpha, factor } } as any;
+				result = { ...result, trades: influencedTrades, equity_curve, overall, sentiment_meta: { score, alpha, factor }, metrics: { baseline: baselineOverall, adjusted: overall } } as any;
 			} catch (_) { /* ignore sentiment errors to keep deterministic */ }
 		}
 		res.json({ data: result });
+		backtestRuns.inc({ timeframe, sentiment: sentimentFlag });
+		endTimer();
 	} catch (err) {
 		res.status(500).json({ error: 'internal_error' });
 	}

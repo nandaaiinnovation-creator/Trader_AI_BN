@@ -115,14 +115,38 @@ export default function Backtesting(){
           </div>
           <div className="bn-card" style={{padding:12}}>
             <h4 style={{marginTop:0}}>Performance Summary</h4>
+            {summary?.metrics?.baseline && summary?.metrics?.adjusted && (
+              <div style={{marginBottom:8, fontSize:12, color:'#555'}}>
+                Sentiment applied: α={summary.sentiment_meta?.alpha} · factor={summary.sentiment_meta?.factor?.toFixed(2)} · score={summary.sentiment_meta?.score?.toFixed?.(2)}
+              </div>
+            )}
             {summary?.overall ? (
               <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(140px,1fr))', gap:8}}>
-                <div><b>Win %</b><div>{(summary.overall.win_rate*100).toFixed(1)}%</div></div>
-                <div><b>Profit Factor</b><div>{summary.overall.profit_factor.toFixed(2)}</div></div>
-                <div><b>Expectancy</b><div>{summary.overall.expectancy.toFixed(2)}</div></div>
-                <div><b>Max DD</b><div>{summary.overall.max_drawdown.toFixed(2)}</div></div>
-                <div><b>Sharpe</b><div>{summary.overall.sharpe.toFixed(2)}</div></div>
-                <div><b>PNL</b><div>{summary.overall.pnl.toFixed(2)}</div></div>
+                {summary?.metrics?.baseline ? (
+                  <>
+                    <div><b>Win % (base)</b><div>{(summary.metrics.baseline.win_rate*100).toFixed(1)}%</div></div>
+                    <div><b>PF (base)</b><div>{summary.metrics.baseline.profit_factor.toFixed(2)}</div></div>
+                    <div><b>Expectancy (base)</b><div>{summary.metrics.baseline.expectancy.toFixed(2)}</div></div>
+                    <div><b>Max DD (base)</b><div>{summary.metrics.baseline.max_drawdown.toFixed(2)}</div></div>
+                    <div><b>Sharpe (base)</b><div>{summary.metrics.baseline.sharpe.toFixed(2)}</div></div>
+                    <div><b>PNL (base)</b><div>{summary.metrics.baseline.pnl.toFixed(2)}</div></div>
+                    <div><b>Win % (adj)</b><div>{(summary.metrics.adjusted.win_rate*100).toFixed(1)}%</div></div>
+                    <div><b>PF (adj)</b><div>{summary.metrics.adjusted.profit_factor.toFixed(2)}</div></div>
+                    <div><b>Expectancy (adj)</b><div>{summary.metrics.adjusted.expectancy.toFixed(2)}</div></div>
+                    <div><b>Max DD (adj)</b><div>{summary.metrics.adjusted.max_drawdown.toFixed(2)}</div></div>
+                    <div><b>Sharpe (adj)</b><div>{summary.metrics.adjusted.sharpe.toFixed(2)}</div></div>
+                    <div><b>PNL (adj)</b><div>{summary.metrics.adjusted.pnl.toFixed(2)}</div></div>
+                  </>
+                ) : (
+                  <>
+                    <div><b>Win %</b><div>{(summary.overall.win_rate*100).toFixed(1)}%</div></div>
+                    <div><b>Profit Factor</b><div>{summary.overall.profit_factor.toFixed(2)}</div></div>
+                    <div><b>Expectancy</b><div>{summary.overall.expectancy.toFixed(2)}</div></div>
+                    <div><b>Max DD</b><div>{summary.overall.max_drawdown.toFixed(2)}</div></div>
+                    <div><b>Sharpe</b><div>{summary.overall.sharpe.toFixed(2)}</div></div>
+                    <div><b>PNL</b><div>{summary.overall.pnl.toFixed(2)}</div></div>
+                  </>
+                )}
               </div>
             ) : <div>Run a backtest to see metrics.</div>}
             {summary?.groups && (
