@@ -7,7 +7,9 @@
       {"type": "graph", "title": "Signals/min", "targets": [{"expr": "signals_min"}]},
       {"type": "graph", "title": "WS Latency", "targets": [{"expr": "ws_latency"}]},
       {"type": "graph", "title": "Error Rates", "targets": [{"expr": "error_rate"}]},
-      {"type": "graph", "title": "Backtest Durations", "targets": [{"expr": "backtest_duration"}]},
+      {"type": "graph", "title": "Backtest Duration (s)", "targets": [{"expr": "histogram_quantile(0.9, sum(rate(backtest_duration_seconds_bucket[5m])) by (le))"}]},
+      {"type": "graph", "title": "Backtest Runs", "targets": [{"expr": "sum(rate(backtest_runs_total[5m])) by (timeframe, sentiment)"}]},
+      {"type": "graph", "title": "Sentiment Score", "targets": [{"expr": "sentiment_score"}]},
       {"type": "graph", "title": "ML Job Durations", "targets": [{"expr": "ml_job_duration"}]}
     ]
   }

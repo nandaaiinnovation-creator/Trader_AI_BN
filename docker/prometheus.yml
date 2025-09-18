@@ -4,3 +4,4 @@ scrape_configs:
   - job_name: 'backend'
     static_configs:
       - targets: ['backend:8080']
+    metrics_path: /metrics

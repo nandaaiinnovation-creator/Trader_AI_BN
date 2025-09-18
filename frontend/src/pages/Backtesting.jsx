@@ -4,6 +4,43 @@ export default function Backtesting(){
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState(null)
   const [summary, setSummary] = React.useState(null)
+  const [v2Enabled, setV2Enabled] = React.useState(()=>{
+    try { return (import.meta.env?.VITE_BACKTEST_V2_ENABLED === 'true') || (window?.BACKTEST_V2_ENABLED === true) } catch { return false }
+  })
+  const [sentimentEnabled, setSentimentEnabled] = React.useState(()=>{
+    try { return (import.meta.env?.VITE_SENTIMENT_ENABLED === 'true') || (window?.SENTIMENT_ENABLED === true) } catch { return false }
+  })
+  const [timeframe, setTimeframe] = React.useState('5m')
+  const [toggles, setToggles] = React.useState({
+    global: true,
+    groups: {
+      'Price Action': true,
+      'Momentum': true,
+      'Trend': true,
+      'Volatility': true,
+      'Sentiment': true,
+    }
+  })
+  const [sentimentInfluence, setSentimentInfluence] = React.useState(false)
+  const [sentimentScore, setSentimentScore] = React.useState(null)
+
+  React.useEffect(()=>{
+    let abort = false
+    async function loadScore(){
+      if(!sentimentEnabled) { setSentimentScore(null); return }
+      try {
+        const res = await fetch(`/api/sentiment/score?symbol=BANKNIFTY&timeframe=${encodeURIComponent(timeframe)}`)
+        if(!res.ok) throw new Error('HTTP '+res.status)
+        const j = await res.json()
+        if(!abort) setSentimentScore(j?.data?.score ?? null)
+      } catch {
+        if(!abort) setSentimentScore(null)
+      }
+    }
+    loadScore()
+    const t = setInterval(loadScore, 30000)
+    return ()=>{ abort = true; clearInterval(t) }
+  }, [timeframe, sentimentEnabled])
 
   const runDemo = async () => {
     setLoading(true); setError(null)
@@ -19,12 +56,138 @@ export default function Backtesting(){
     }
   }
 
+  const runV2 = async () => {
+    setLoading(true); setError(null)
+    try {
+      const payload = { timeframe, toggles, sentimentInfluence: sentimentEnabled && sentimentInfluence }
+      const res = await fetch('/api/backtest/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      if(!res.ok) throw new Error(`HTTP ${res.status}`)
+      const json = await res.json()
+      setSummary(json.data || null)
+    } catch (e) {
+      setError(e.message || 'Failed to run backtest v2')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div style={{padding:20}}>
       <h2>Backtesting</h2>
-      <p>Run a deterministic demo backtest to verify wiring.</p>
+      <p>Run a deterministic demo backtest to verify wiring. {v2Enabled ? 'Backtest v2 available.' : ''}</p>
 
-      <button onClick={runDemo} disabled={loading}>
+      {v2Enabled && (
+        <div style={{display:'grid', gridTemplateColumns:'1fr 2fr', gap:12, marginBottom:12}}>
+          <div className="bn-card" style={{padding:12}}>
+            <h4 style={{marginTop:0}}>Controls</h4>
+            <div style={{marginBottom:8}}>
+              <label>Timeframe: </label>
+              <select value={timeframe} onChange={e=>setTimeframe(e.target.value)}>
+                <option value="3m">3m</option>
+                <option value="5m">5m</option>
+                <option value="15m">15m</option>
+              </select>
+            </div>
+            <div>
+              <label style={{display:'flex', alignItems:'center', gap:6}}>
+                <input type="checkbox" checked={!!toggles.global} onChange={e=>setToggles(t=>({ ...t, global: e.target.checked }))} />
+                <span>Enable all rules</span>
+              </label>
+              {Object.keys(toggles.groups).map(g => (
+                <label key={g} style={{display:'flex', alignItems:'center', gap:6}}>
+                  <input type="checkbox" checked={!!toggles.groups[g]} onChange={e=>setToggles(t=>({ ...t, groups: { ...t.groups, [g]: e.target.checked } }))} />
+                  <span>{g}</span>
+                </label>
+              ))}
+            </div>
+            {sentimentEnabled && (
+              <div style={{marginTop:8, paddingTop:8, borderTop:'1px dashed #ddd'}}>
+                <label style={{display:'flex', alignItems:'center', gap:6}}>
+                  <input type="checkbox" checked={!!sentimentInfluence} onChange={e=>setSentimentInfluence(e.target.checked)} />
+                  <span>Use Sentiment influence</span>
+                </label>
+                <div style={{fontSize:12, opacity:0.8}}>Score: {sentimentScore===null ? '—' : sentimentScore.toFixed(2)} {summary?.sentiment_meta && ` (α=${summary.sentiment_meta.alpha}, factor=${summary.sentiment_meta.factor.toFixed(2)})`}</div>
+              </div>
+            )}
+            <div style={{marginTop:10}}>
+              <button onClick={runV2} disabled={loading}>{loading ? 'Running…' : 'Run Backtest'}</button>
+            </div>
+          </div>
+          <div className="bn-card" style={{padding:12}}>
+            <h4 style={{marginTop:0}}>Performance Summary</h4>
+            {summary?.metrics?.baseline && summary?.metrics?.adjusted && (
+              <div style={{marginBottom:8, fontSize:12, color:'#555'}}>
+                Sentiment applied: α={summary.sentiment_meta?.alpha} · factor={summary.sentiment_meta?.factor?.toFixed(2)} · score={summary.sentiment_meta?.score?.toFixed?.(2)}
+              </div>
+            )}
+            {summary?.overall ? (
+              <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(140px,1fr))', gap:8}}>
+                {summary?.metrics?.baseline ? (
+                  <>
+                    <div><b>Win % (base)</b><div>{(summary.metrics.baseline.win_rate*100).toFixed(1)}%</div></div>
+                    <div><b>PF (base)</b><div>{summary.metrics.baseline.profit_factor.toFixed(2)}</div></div>
+                    <div><b>Expectancy (base)</b><div>{summary.metrics.baseline.expectancy.toFixed(2)}</div></div>
+                    <div><b>Max DD (base)</b><div>{summary.metrics.baseline.max_drawdown.toFixed(2)}</div></div>
+                    <div><b>Sharpe (base)</b><div>{summary.metrics.baseline.sharpe.toFixed(2)}</div></div>
+                    <div><b>PNL (base)</b><div>{summary.metrics.baseline.pnl.toFixed(2)}</div></div>
+                    <div><b>Win % (adj)</b><div>{(summary.metrics.adjusted.win_rate*100).toFixed(1)}%</div></div>
+                    <div><b>PF (adj)</b><div>{summary.metrics.adjusted.profit_factor.toFixed(2)}</div></div>
+                    <div><b>Expectancy (adj)</b><div>{summary.metrics.adjusted.expectancy.toFixed(2)}</div></div>
+                    <div><b>Max DD (adj)</b><div>{summary.metrics.adjusted.max_drawdown.toFixed(2)}</div></div>
+                    <div><b>Sharpe (adj)</b><div>{summary.metrics.adjusted.sharpe.toFixed(2)}</div></div>
+                    <div><b>PNL (adj)</b><div>{summary.metrics.adjusted.pnl.toFixed(2)}</div></div>
+                  </>
+                ) : (
+                  <>
+                    <div><b>Win %</b><div>{(summary.overall.win_rate*100).toFixed(1)}%</div></div>
+                    <div><b>Profit Factor</b><div>{summary.overall.profit_factor.toFixed(2)}</div></div>
+                    <div><b>Expectancy</b><div>{summary.overall.expectancy.toFixed(2)}</div></div>
+                    <div><b>Max DD</b><div>{summary.overall.max_drawdown.toFixed(2)}</div></div>
+                    <div><b>Sharpe</b><div>{summary.overall.sharpe.toFixed(2)}</div></div>
+                    <div><b>PNL</b><div>{summary.overall.pnl.toFixed(2)}</div></div>
+                  </>
+                )}
+              </div>
+            ) : <div>Run a backtest to see metrics.</div>}
+            {summary?.groups && (
+              <div style={{marginTop:12}}>
+                <h5>Group Breakdown</h5>
+                <table style={{width:'100%', fontSize:12}}>
+                  <thead><tr><th align="left">Group</th><th>Win %</th><th>PF</th><th>PNL</th></tr></thead>
+                  <tbody>
+                    {Object.entries(summary.groups).map(([g, m]) => (
+                      <tr key={g}><td>{g}</td><td style={{textAlign:'center'}}>{(m.win_rate*100).toFixed(1)}%</td><td style={{textAlign:'center'}}>{m.profit_factor.toFixed(2)}</td><td style={{textAlign:'right'}}>{m.pnl.toFixed(2)}</td></tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {summary?.equity_curve && (
+              <div style={{marginTop:12}}>
+                <h5>Equity (simplified)</h5>
+                <ul style={{maxHeight:160, overflow:'auto'}}>
+                  {summary.equity_curve.map((p,i)=> <li key={i}>{new Date(p.time).toLocaleTimeString()} → {p.equity.toFixed(2)}</li>)}
+                </ul>
+              </div>
+            )}
+            {summary?.trades && (
+              <div style={{marginTop:12}}>
+                <h5>Trades</h5>
+                <table style={{width:'100%', fontSize:12}}>
+                  <thead><tr><th align="left">Time</th><th>Type</th><th>Entry</th><th>Exit</th><th>PNL</th><th align="left">Rules</th></tr></thead>
+                  <tbody>
+                    {summary.trades.map((t,i)=> (
+                      <tr key={i}><td>{new Date(t.time).toLocaleTimeString()}</td><td style={{textAlign:'center'}}>{t.type}</td><td style={{textAlign:'right'}}>{t.price}</td><td style={{textAlign:'right'}}>{t.exit_price}</td><td style={{textAlign:'right'}}>{t.pnl.toFixed(2)}</td><td>{(t.rules_triggered||[]).join(', ')}</td></tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <button onClick={runDemo} disabled={loading || v2Enabled}>
         {loading ? 'Running…' : 'Run Demo Backtest'}
       </button>
 

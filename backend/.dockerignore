@@ -1,0 +1,11 @@
+# Exclude local artifacts that should not be copied into Docker build context
+node_modules
+dist
+coverage
+npm-debug.log*
+yarn-error.log*
+.git
+.github
+.DS_Store
+*.local
+.env

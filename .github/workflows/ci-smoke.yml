@@ -1,19 +1,85 @@
 ---
-# yamllint disable: truthy
-name: CI Smoke
+name: CI Smoke (Docker + Cypress)
 
 on:
   push:
     branches:
       - 'feature/**'
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   smoke:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "CI smoke run for feature branch" > smoke.txt
-      - uses: actions/upload-artifact@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 18
+        uses: actions/setup-node@v4
         with:
-          name: smoke-artifact
-          path: smoke.txt
+          node-version: '18'
+
+      - name: Prepare .env
+        working-directory: banknifty-signals
+        shell: bash
+        run: |
+          cp .env.example .env
+          # Enable demo and flags for smoke
+          sed -i 's/^DEMO_MODE=.*/DEMO_MODE=true/' .env || true
+          # uncomment and enable stage flags for smoke
+          sed -i 's/^ \# BACKTEST_V2_ENABLED=true/BACKTEST_V2_ENABLED=true/' .env || true
+          sed -i 's/^ \# SENTIMENT_ENABLED=true/SENTIMENT_ENABLED=true/' .env || true
+          sed -i 's/^ \# E2E_SMOKE_ENABLED=true/E2E_SMOKE_ENABLED=true/' .env || true
+
+      - name: Build images
+        working-directory: banknifty-signals
+        run: docker compose -f docker/docker-compose.yml build
+
+      - name: Start stack
+        working-directory: banknifty-signals
+        run: docker compose -f docker/docker-compose.yml up -d
+
+      - name: Wait for backend health
+        run: |
+          for i in {1..60}; do
+            if curl -fsS http://localhost:8080/api/health >/dev/null; then echo backend ok; exit 0; fi; sleep 2;
+          done; echo backend not ready; docker ps -a; docker logs bn_backend || true; exit 1
+
+      - name: Wait for frontend
+        run: |
+          for i in {1..60}; do
+            if curl -fsS http://localhost:3000 >/dev/null; then echo frontend ok; exit 0; fi; sleep 2;
+          done; echo frontend not ready; docker ps -a; docker logs bn_frontend || true; exit 1
+
+      - name: Install Cypress deps (frontend)
+        working-directory: banknifty-signals/frontend
+        env:
+          NPM_CONFIG_PRODUCTION: 'false'
+        run: npm ci --include=dev
+
+      - name: Run Cypress smoke
+        working-directory: banknifty-signals/frontend
+        env:
+          CYPRESS_baseUrl: http://localhost:3000
+        run: npx cypress run --spec "cypress/e2e/dashboard.spec.js,cypress/e2e/nav_and_settings.spec.js,cypress/e2e/backtest_smoke.spec.js,cypress/e2e/ws_smoke.spec.js"
+
+      - name: Collect container logs
+        if: always()
+        working-directory: banknifty-signals
+        run: |
+          mkdir -p artifacts
+          docker ps -a > artifacts/docker-ps.txt 2>&1 || true
+          docker logs bn_backend > artifacts/backend.log 2>&1 || true
+          docker logs bn_frontend > artifacts/frontend.log 2>&1 || true
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-smoke-artifacts
+          path: |
+            banknifty-signals/artifacts/**
+            banknifty-signals/frontend/cypress/videos/**
+            banknifty-signals/frontend/cypress/screenshots/**

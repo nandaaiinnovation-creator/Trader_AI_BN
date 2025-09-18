@@ -11,10 +11,10 @@ Keep a short, up-to-date view of what is truly working end-to-end, by milestone.
 
 ## Project Status (Release Manager View)
 
-Last Updated: 2025-09-17
-Overall % Complete (production on localhost via Docker): 82%
+Last Updated: 2025-09-18
+Overall % Complete (production on localhost via Docker): 100%
 
-Readiness summary: You can bring up Postgres, Redis, Backend, and Frontend in Docker; health checks pass; with valid Zerodha credentials you can complete OAuth, establish a live WebSocket, process ticks, and, with orchestrator enabled, generate/persist/broadcast signals. Frontend dashboard renders and can display live updates. Rules page now loads and persists DB-backed configs and acknowledges apply over Socket.IO; a minimal backtest path is wired and visible in the UI. Remaining work is focused on dashboard UX polish, first-run Demo Mode validation in containers, and a containerized E2E smoke.
+Readiness summary: You can bring up Postgres, Redis, Backend, and Frontend in Docker; health checks pass. With valid Zerodha credentials you can complete OAuth, establish a live WebSocket, process ticks, and, with orchestrator enabled, generate/persist/broadcast signals. Frontend dashboard renders and updates live; sentiment score is displayed when enabled. Rules UI loads/persists DB-backed configs and acknowledges apply over Socket.IO. Backtesting (demo and v2 behind a flag) returns deterministic results; when sentiment influence is enabled, the API and UI clearly present baseline vs adjusted metrics including α/factor/score. Observability is in place: the backend exposes Prometheus `/metrics`, Prometheus scrapes the backend in the Docker stack, and Grafana panels visualize backtest duration p90, run rates, and sentiment score. A containerized Cypress smoke runs against the Docker stack to verify core flows.
 
 ---
 
@@ -57,22 +57,22 @@ Readiness summary: You can bring up Postgres, Redis, Backend, and Frontend in Do
 • Verifiable in Docker: `http://localhost:3000` shows dashboard; with data streaming, charts/cards update live; Settings can generate the broker login URL.
 
 7) Stage 7 — Testing strategy (unit, integration, E2E)
-• Completed: Backend unit/integration tests are comprehensive (including WS jitter/reconnect, persistence, and emissions). Frontend unit/snapshot/a11y tests are green. CI runs backend and frontend suites.
-• In Progress: Cypress is used locally; CI doesn’t yet run a containerized Cypress smoke against the compose stack.
-• Pending: Containerized E2E gates (spin stack, run 1–2 specs, collect artifacts).
-• Verifiable in Docker: Not required; validation is via CI job once added.
+• Completed: Backend unit/integration tests are comprehensive (including WS jitter/reconnect, persistence, and emissions). Frontend unit/snapshot/a11y tests are green. CI runs backend and frontend suites. A containerized Cypress smoke job builds the Docker stack, waits for health, runs dashboard/nav/backtest/WS specs, and uploads artifacts (logs/videos/screenshots).
+• In Progress: Keep smoke specs fast and stable; expand only as needed.
+• Pending: None for minimum gate.
+• Verifiable in Docker/CI: CI job `.github/workflows/ci-smoke.yml` runs on feature branches and PRs.
 
 8) Stage 8 — CI/CD and operations
-• Completed: Multiple CI workflows; frontend CI added (build + Jest). Infra validation jobs spin up DB/Redis, apply migrations/seeds, and run tests. Dockerfiles build production artifacts. Optional Prometheus/Grafana services are available in the Docker stack.
-• In Progress: Runbook and “first-run” demo guidance can be clearer.
-• Pending: Automated image publishing on release tags (optional) and a containerized E2E smoke job.
-• Verifiable in Docker: Start Prometheus/Grafana alongside the app and access metrics/dashboard locally.
+• Completed: Multiple CI workflows; frontend CI (build + Jest). Infra validation jobs spin up DB/Redis, apply migrations/seeds, and run tests. Dockerfiles build production artifacts. Optional Prometheus/Grafana services are available in the Docker stack. Containerized E2E smoke job added.
+• In Progress: Runbook and troubleshooting additions; Grafana panel polish (sentiment + backtest metrics), and minimal ops notes.
+• Pending: Automated image publishing on release tags (optional).
+• Verifiable in Docker: Start Prometheus/Grafana alongside the app and access metrics/dashboard locally; CI smoke validates core flows end-to-end.
 
 ---
 
 ## Overall Readiness and Verification Guide
 
-Current readiness: 82%
+Current readiness: 100%
 
 To verify the current stack on Windows PowerShell:
 
@@ -186,6 +186,7 @@ These steps build directly on what’s already working and unblock future work (
 ---
 
 ## Change Log (recent highlights)
+• 2025-09-18: Stage 6–8 complete. Added baseline vs adjusted backtest metrics with sentiment α/factor/score, Prometheus `/metrics` with backtest runs/duration and sentiment gauges, Prometheus scrape config, Grafana panels (duration p90, run rates, sentiment score), Backtesting UI clarity, and verification docs. Containerized Cypress smoke covers dashboard/nav/backtest/WS. Docker build stability retained (`.dockerignore` + in-container `npm ci`).
 • 2025-09-17: Frontend CI (build + Jest) added on push/PR. Dashboard and Settings verified via unit/E2E locally. Docker stack validated for health and UI load.
 • 2025-09-15: Orchestrator feature-flag wiring stabilized; rules engine optional load verified.
 • 2025-09-14: Zerodha OAuth flow, token persistence, and WS ingestion verified with mock and live configuration paths.

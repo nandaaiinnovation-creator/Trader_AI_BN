@@ -17,6 +17,7 @@ import path from 'path';
 import fs from 'fs';
 import { pathToFileURL } from 'url';
 import { demoEmitter } from './demo/emitter';
+import { register as metricsRegistry } from './utils/metrics';
 
 const app = express();
 app.use(express.json());
@@ -26,6 +27,16 @@ app.get('/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok', uptime: process.uptime() });
 });
 app.use('/api', api);
+
+// Prometheus metrics endpoint
+app.get('/metrics', async (_req: Request, res: Response) => {
+  try {
+    res.set('Content-Type', metricsRegistry.contentType);
+    res.send(await metricsRegistry.metrics());
+  } catch (err) {
+    res.status(500).send('# metrics_error');
+  }
+});
 
 const server = http.createServer(app);
 export const io = new Server(server, { cors: { origin: '*' } });
