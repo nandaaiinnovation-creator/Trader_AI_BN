@@ -12,9 +12,9 @@ Keep a short, up-to-date view of what is truly working end-to-end, by milestone.
 ## Project Status (Release Manager View)
 
 Last Updated: 2025-09-18
-Overall % Complete (production on localhost via Docker): 88%
+Overall % Complete (production on localhost via Docker): 100%
 
-Readiness summary: You can bring up Postgres, Redis, Backend, and Frontend in Docker; health checks pass. With valid Zerodha credentials you can complete OAuth, establish a live WebSocket, process ticks, and, with orchestrator enabled, generate/persist/broadcast signals. Frontend dashboard renders and updates live; sentiment score is displayed when enabled. Rules UI loads/persists DB-backed configs and acknowledges apply over Socket.IO. Backtesting (demo and v2 behind a flag) returns deterministic results; sentiment influence path is available behind a flag. A containerized Cypress smoke runs against the Docker stack to verify core flows. Remaining work focuses on Ops/Grafana polish and final runbook clarifications.
+Readiness summary: You can bring up Postgres, Redis, Backend, and Frontend in Docker; health checks pass. With valid Zerodha credentials you can complete OAuth, establish a live WebSocket, process ticks, and, with orchestrator enabled, generate/persist/broadcast signals. Frontend dashboard renders and updates live; sentiment score is displayed when enabled. Rules UI loads/persists DB-backed configs and acknowledges apply over Socket.IO. Backtesting (demo and v2 behind a flag) returns deterministic results; when sentiment influence is enabled, the API and UI clearly present baseline vs adjusted metrics including α/factor/score. Observability is in place: the backend exposes Prometheus `/metrics`, Prometheus scrapes the backend in the Docker stack, and Grafana panels visualize backtest duration p90, run rates, and sentiment score. A containerized Cypress smoke runs against the Docker stack to verify core flows.
 
 ---
 
@@ -72,7 +72,7 @@ Readiness summary: You can bring up Postgres, Redis, Backend, and Frontend in Do
 
 ## Overall Readiness and Verification Guide
 
-Current readiness: 88%
+Current readiness: 100%
 
 To verify the current stack on Windows PowerShell:
 
@@ -186,7 +186,7 @@ These steps build directly on what’s already working and unblock future work (
 ---
 
 ## Change Log (recent highlights)
-• 2025-09-18: Docker stabilized for cross-platform builds (`.dockerignore` + in-container `npm ci`), containerized Cypress smoke runs (dashboard, nav/settings, backtest, WS), Sentiment API/UI integrated (score on Dashboard; influence path in Backtest v2), docs updated with verification + troubleshooting.
+• 2025-09-18: Stage 6–8 complete. Added baseline vs adjusted backtest metrics with sentiment α/factor/score, Prometheus `/metrics` with backtest runs/duration and sentiment gauges, Prometheus scrape config, Grafana panels (duration p90, run rates, sentiment score), Backtesting UI clarity, and verification docs. Containerized Cypress smoke covers dashboard/nav/backtest/WS. Docker build stability retained (`.dockerignore` + in-container `npm ci`).
 • 2025-09-17: Frontend CI (build + Jest) added on push/PR. Dashboard and Settings verified via unit/E2E locally. Docker stack validated for health and UI load.
 • 2025-09-15: Orchestrator feature-flag wiring stabilized; rules engine optional load verified.
 • 2025-09-14: Zerodha OAuth flow, token persistence, and WS ingestion verified with mock and live configuration paths.
